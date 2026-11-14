@@ -71,7 +71,7 @@ alarm system (exact times, skips anything done/excused/paused, trash nights foll
 
 - Build: `.github/workflows/android.yml` runs on changes to `android/`, `capacitor.config.json` or `package*.json`
   and publishes `dashboard.apk` to the `android-latest` release.
-- Install: open https://github.com/eyrek/daily-dashboard/releases/download/android-latest/dashboard.apk on the phone.
+- Install: open https://github.com/eyrek/daily-dashboard/releases/download/android-latest/deck.apk on the phone.
 - Signing: `android/app/dashboard.keystore` keeps the signature stable so updates install over the old app.
   It's committed to this public repo for convenience; anyone could sign an app that looks like an update to this one,
   so only install APKs from this repo's release page. Moving the key into a repo secret is the stricter option.

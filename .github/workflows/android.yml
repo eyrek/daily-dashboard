@@ -1,5 +1,5 @@
 # Builds the Android app (Capacitor shell around the live site) and publishes the APK to the
-# "android-latest" release: https://github.com/eyrek/daily-dashboard/releases/download/android-latest/dashboard.apk
+# "android-latest" release: https://github.com/eyrek/daily-dashboard/releases/download/android-latest/deck.apk
 name: android
 on:
   push:
@@ -41,16 +41,16 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --stacktrace
-      - run: cp android/app/build/outputs/apk/release/app-release.apk dashboard.apk
+      - run: cp android/app/build/outputs/apk/release/app-release.apk deck.apk
       - uses: actions/upload-artifact@v4
         with:
           name: dashboard-apk
-          path: dashboard.apk
+          path: deck.apk
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete android-latest --yes --cleanup-tag || true
-          gh release create android-latest dashboard.apk \
-            --title "Dashboard for Android (build ${{ github.run_number }})" \
-            --notes "Install on your phone: open this page in Chrome, tap dashboard.apk, then allow installs from Chrome when asked. The app loads the live dashboard, so most updates arrive without reinstalling."
+          gh release create android-latest deck.apk \
+            --title "Deck for Android (build ${{ github.run_number }})" \
+            --notes "Install on your phone: open this page in Chrome, tap deck.apk, then allow installs from Chrome when asked. The app loads the live dashboard, so most updates arrive without reinstalling."

@@ -377,7 +377,7 @@ function settings() {
 }
 const REPO = 'https://github.com/eyrek/daily-dashboard';
 let reminderList = null;
-const APK = REPO + '/releases/download/android-latest/dashboard.apk';
+const APK = REPO + '/releases/download/android-latest/deck.apk';
 async function nativeBox(box) {
   const N = DeckNotify, perm = await N.permission(), R = N.settings(), exact = await N.exactAllowed();
   const next = N.plan()[0];
