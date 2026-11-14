@@ -154,6 +154,7 @@ legend{padding:0}
 <script src="deck-core.js"></script>
 <script src="deck-ui.js"></script>
 <script src="deck-push.js"></script>
+<script src="deck-notify.js"></script>
 <script>
 {
 const D = Deck, U = DeckUI, esc = D.esc, $ = id => document.getElementById(id);
@@ -376,8 +377,24 @@ function settings() {
 }
 const REPO = 'https://github.com/eyrek/daily-dashboard';
 let reminderList = null;
+const APK = REPO + '/releases/download/android-latest/dashboard.apk';
+async function nativeBox(box) {
+  const N = DeckNotify, perm = await N.permission(), R = N.settings(), exact = await N.exactAllowed();
+  const next = N.plan()[0];
+  const nextTxt = next ? `Next: <b>${esc(next.title)}</b>, ${esc(next.at.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' }))}` : 'Nothing scheduled in the next 7 days.';
+  const rows = Object.keys(N.LABELS).map(k => `<div class="item"><label class="layer" style="border:0;min-height:40px;flex:1"><input type="checkbox" data-rem="${k}"${R[k].on ? ' checked' : ''}><span>${esc(N.LABELS[k])}</span></label><input type="time" data-remtime="${k}" value="${esc(R[k].time)}" aria-label="${esc(N.LABELS[k])} time"></div>`).join('');
+  box.innerHTML = `<h3>Notifications</h3>
+    ${perm !== 'granted' ? `<p class="hint">Reminders are scheduled on this phone at exact times and skip anything you've already done.</p><div class="row"><button type="button" class="sm pri" id="nat-on">Turn on notifications</button></div>` : `<p class="hint">${nextTxt}</p>`}
+    ${perm === 'granted' && !exact ? `<p class="banner">Android is only allowing approximate times. <button type="button" class="sm" id="nat-exact">Allow exact times</button></p>` : ''}
+    <div class="list" style="margin-top:6px">${rows}</div>
+    <p class="hint">The evening cue only fires while an evening routine is in training and not yet played that day. Trash and recycling follow the pickup days above. Campfire skips weeks you've already done it.</p>
+    ${perm === 'granted' ? '<div class="row"><button type="button" class="sm" id="nat-test">Send a test in 5 seconds</button></div>' : ''}
+    ${N.lastError ? `<p class="hint">Last scheduling error: ${esc(N.lastError)}</p>` : ''}`;
+}
 async function pushBox() {
-  const box = $('pushbox'); if (!box || !window.DeckPush) return;
+  const box = $('pushbox'); if (!box) return;
+  if (window.DeckNotify && DeckNotify.native) return nativeBox(box);
+  if (!window.DeckPush) return;
   let st; try { st = await DeckPush.status(); } catch (e) { st = { supported: false }; }
   if (!reminderList) { try { reminderList = (await (await fetch('reminders.json', { cache: 'no-cache' })).json()).reminders; } catch (e) { reminderList = []; } }
   const to12 = t => { const [h, m] = t.split(':').map(Number); return `${(h % 12) || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`; };
@@ -395,8 +412,22 @@ async function pushBox() {
     <textarea id="push-code" readonly aria-label="Setup code" style="min-height:60px;font:12px ui-monospace,Consolas,monospace">${esc(st.code)}</textarea>
     <div class="row"><button type="button" class="sm" id="push-test">Test on this device</button><button type="button" class="sm ghost" id="push-off">Turn off on this device</button></div>
     <p class="hint">The code contains this device's private signing key. Paste it only into the GitHub secret, not into chats or notes.</p>`;
-  box.innerHTML = `<h3>Notifications</h3>${body}<p class="hint" style="margin-top:8px">Scheduled reminders:</p>${list}<p class="hint">To change times or turn reminders on, ask Claude or edit <a href="${REPO}/blob/main/reminders.json" target="_blank" rel="noopener">reminders.json</a>.</p>`;
+  box.innerHTML = `<h3>Notifications</h3><p class="banner" style="margin-top:6px"><b>On Android, use the app instead.</b> It schedules reminders on the phone, at exact times, skips ones you've done, and needs no setup code. <a href="${APK}">Download the Android app</a> (open this link on your phone).</p>${body}<p class="hint" style="margin-top:8px">Scheduled reminders:</p>${list}<p class="hint">To change times or turn reminders on, ask Claude or edit <a href="${REPO}/blob/main/reminders.json" target="_blank" rel="noopener">reminders.json</a>.</p>`;
 }
+document.addEventListener('click', async e => {
+  const id = e.target.id; if (!id || !id.startsWith('nat-')) return;
+  try {
+    if (id === 'nat-on') { await DeckNotify.requestPermission(); U.toast('Notifications are on.'); }
+    if (id === 'nat-exact') await DeckNotify.openExactSetting();
+    if (id === 'nat-test') { await DeckNotify.test(); U.toast('Test coming in 5 seconds. You can leave the app.'); }
+  } catch (err) { U.toast(err.message || 'That didn\u2019t work.'); }
+  pushBox();
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.rem) { U.act(DeckNotify.setReminder(t.dataset.rem, { on: t.checked }), true); setTimeout(pushBox, 50); }
+  if (t.dataset && t.dataset.remtime && /^\d\d:\d\d$/.test(t.value)) { U.act(DeckNotify.setReminder(t.dataset.remtime, { time: t.value }), true); setTimeout(pushBox, 50); }
+});
 document.addEventListener('click', async e => {
   const id = e.target.id; if (!id || !id.startsWith('push-')) return;
   try {

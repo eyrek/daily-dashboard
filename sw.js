@@ -1,7 +1,7 @@
 // Service worker: same-origin files only. Network first with a short timeout (fresh code when online,
 // instant fallback on weak signal), cached copy when offline. Other sites (weather, news, fonts) are left alone.
-const C = 'dash-v5';
-const SHELL = ['./', 'index.html', 'deck.html', 'deck-core.js', 'deck-ui.js', 'deck.css', 'deck-push.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'badge-96.png'];
+const C = 'dash-v6';
+const SHELL = ['./', 'index.html', 'deck.html', 'deck-core.js', 'deck-ui.js', 'deck.css', 'deck-push.js', 'deck-notify.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'badge-96.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
