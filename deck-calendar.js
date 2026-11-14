@@ -10,7 +10,7 @@
   'use strict';
   const D = window.Deck, esc = D.esc;
   /* OAuth client ID for https://eyrek.github.io (not a secret; it only works from that site). */
-  const GOOGLE_CLIENT_ID = '';
+  const GOOGLE_CLIENT_ID = '432336762758-9tsfn0o4bn3nj2j2gdk0s77jnudpuh2e.apps.googleusercontent.com';
   const SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
   const Cap = window.Capacitor;
   const native = !!(Cap && typeof Cap.isNativePlatform === 'function' && Cap.isNativePlatform());

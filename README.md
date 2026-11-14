@@ -81,3 +81,6 @@ alarm system (exact times, skips anything done/excused/paused, trash nights foll
 `deck-calendar.js` reads the phone's calendar (Google Calendar syncs to it) through `@ebarooni/capacitor-calendar`:
 today's events on the hand, the workout session from events named after a session ("Push day"), next week at the
 campfire, and ⏰ on a task to open the system event editor. Settings → Calendar picks which calendars to include.
+Browser calendar: Sign in with Google (Google Cloud project `deck-514723`, OAuth client "Deck web" limited to
+https://eyrek.github.io, testing mode with one test user, read-only Calendar scope). The client ID in
+`deck-calendar.js` is public by design. Browser sign-ins last about an hour; then "Refresh calendar" appears.
