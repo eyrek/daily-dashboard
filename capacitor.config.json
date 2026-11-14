@@ -1,6 +1,6 @@
 {
   "appId": "io.github.eyrek.dashboard",
-  "appName": "Dashboard",
+  "appName": "Deck",
   "webDir": "app-shell",
   "server": {
     "url": "https://eyrek.github.io/daily-dashboard/",

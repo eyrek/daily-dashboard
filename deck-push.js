@@ -43,7 +43,7 @@
   }
   async function testLocal() {
     const reg = await registration();
-    await reg.showNotification('Notifications are on', { body: 'This one came from the app itself. Scheduled reminders come from GitHub.', icon: 'icon-192.png', badge: 'badge-96.png', tag: 'local-test', data: { url: 'deck.html#today' } });
+    await reg.showNotification('Notifications are on', { body: 'This one came from the app itself. Scheduled reminders come from GitHub.', icon: 'icon-192.png', badge: 'badge-96.png', tag: 'local-test', data: { url: './#today' } });
   }
   async function disable() {
     const reg = await navigator.serviceWorker.getRegistration();

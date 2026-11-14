@@ -16,7 +16,7 @@ async function main() {
   const devices = parseConfig(process.env.PUSH_CONFIG || '');
   if (!devices.length) { console.log('No PUSH_CONFIG secret yet. Turn on notifications in the app and add the setup code as a repo secret.'); return; }
   const isTest = String(process.env.TEST) === 'true';
-  const due = isTest ? [{ id: 'test', title: 'Dashboard notifications work', body: 'Reminders will arrive here. Tap to open your hand.', url: 'deck.html#today' }]
+  const due = isTest ? [{ id: 'test', title: 'Dashboard notifications work', body: 'Reminders will arrive here. Tap to open your hand.', url: './#today' }]
     : dueFor(cfg, process.env.SCHEDULE || '');
   if (!due.length) { console.log('Nothing due for', process.env.SCHEDULE); return; }
   const webpush = (await import('web-push')).default;

@@ -1,7 +1,7 @@
 // Service worker: same-origin files only. Network first with a short timeout (fresh code when online,
 // instant fallback on weak signal), cached copy when offline. Other sites (weather, news, fonts) are left alone.
-const C = 'dash-v6';
-const SHELL = ['./', 'index.html', 'deck.html', 'deck-core.js', 'deck-ui.js', 'deck.css', 'deck-push.js', 'deck-notify.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'badge-96.png'];
+const C = 'deck-v7';
+const SHELL = ['./', 'index.html', 'dashboard/', 'dashboard/index.html', 'dashboard/manifest.json', 'dashboard/icon-192.png', 'deck-core.js', 'deck-ui.js', 'deck.css', 'deck-push.js', 'deck-notify.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'badge-96.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -28,7 +28,7 @@ self.addEventListener('fetch', e => {
     } catch (err) {
       const hit = await cache.match(req, { ignoreSearch: true });
       if (hit) { network.catch(() => {}); return hit; }
-      if (req.mode === 'navigate') { const page = await cache.match(url.pathname.endsWith('deck.html') ? 'deck.html' : 'index.html'); if (page) return page; }
+      if (req.mode === 'navigate') { const page = await cache.match(url.pathname.includes('/dashboard/') ? 'dashboard/index.html' : 'index.html'); if (page) return page; }
       return network; // nothing cached: wait for the network after all
     }
   })());

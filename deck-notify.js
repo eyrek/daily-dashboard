@@ -41,14 +41,14 @@
         const open = ev.filter(c => !D.isPlayed(c, d));
         if (open.length) {
           const first = D.linksAt(open[0], d, 'training')[0];
-          add('shutdown', R.shutdown.time, open[0].name, first ? first.name.replace(/^\d+:\d+:\s*/, 'Now: ') : 'Time to start the routine.', 'deck.html#today');
+          add('shutdown', R.shutdown.time, open[0].name, first ? first.name.replace(/^\d+:\d+:\s*/, 'Now: ') : 'Time to start the routine.', './#today');
         }
       }
       const tr = chore('trash');
       if (R.trash.on && (tr.days || []).includes(D.dow(tomorrow)) && !D.choreDoneOn('trash', d)) add('trash', R.trash.time, 'Trash night', 'Trash out tonight. Pickup is tomorrow.', './');
       const rc = chore('recycle');
       if (R.recycle.on && rc.anchor && ((D.diff(tomorrow, rc.anchor) % 14) + 14) % 14 === 0 && !D.choreDoneOn('recycle', d)) add('recycle', R.recycle.time, 'Recycling night', 'Recycling out tonight. Pickup is tomorrow.', './');
-      if (R.campfire.on && D.dow(d) === 0 && !D.currentFire(d)) add('campfire', R.campfire.time, 'Campfire', '10 minutes to review the week and rate your habits.', 'deck.html#campfire');
+      if (R.campfire.on && D.dow(d) === 0 && !D.currentFire(d)) add('campfire', R.campfire.time, 'Campfire', '10 minutes to review the week and rate your habits.', './#campfire');
     }
     return out.sort((a, b) => a.at - b.at);
   }
@@ -86,7 +86,7 @@
   async function test() {
     if (!LN) throw new Error('Notifications need the Android app.');
     await LN.schedule({ notifications: [{ id: 7, title: 'Reminders work', body: 'This is how your cues will look. Tap to open your hand.', channelId: 'reminders', smallIcon: 'ic_stat_deck', iconColor: '#ff5a36',
-      schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true }, extra: { url: 'deck.html#today' } }] });
+      schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true }, extra: { url: './#today' } }] });
   }
 
   if (LN) {

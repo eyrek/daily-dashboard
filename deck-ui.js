@@ -155,9 +155,9 @@
     const cards = D.S.cards.filter(c => D.cardState(c, k) === 'training').sort((a, b) => order(a) - order(b));
     const back = D.diff(today, k);
     const notice = D.notice ? `<p class="banner">${esc(D.notice)}</p>` : '';
-    const onboard = !S.settings.onboarded && k === today ? `<section class="onboard"><b>Two quick setup steps</b><ol><li>Set trash pickup days and one recycling date in <a href="deck.html#settings">Settings</a>.</li><li>Look over your starting cards in <a href="deck.html#habits">Habits</a>. Edit, shelve or keep them.</li></ol><button type="button" class="sm" data-act="onboarded">Got it</button></section>` : '';
+    const onboard = !S.settings.onboarded && k === today ? `<section class="onboard"><b>Two quick setup steps</b><ol><li>Set trash pickup days and one recycling date in <a href="#settings">Settings</a>.</li><li>Look over your starting cards in <a href="#habits">Habits</a>. Edit, shelve or keep them.</li></ol><button type="button" class="sm" data-act="onboarded">Got it</button></section>` : '';
     const chores = D.choresDue(k).map(c => `<label class="chore${D.choreDoneOn(c.id, k) ? ' on' : ''}"><input type="checkbox" data-act="chore" data-id="${c.id}" data-d="${k}"${D.choreDoneOn(c.id, k) ? ' checked' : ''}><span>${esc(c.name)}${c.eve ? ' <small>tonight</small>' : ''}${c.late ? ` <small>from ${esc(c.late)}</small>` : ''}</span></label>`).join('');
-    const fire = k === today && D.fireDue(k) ? '<a class="firelink" href="deck.html#campfire">🔥 Campfire this week: 10 minutes to review ›</a>' : '';
+    const fire = k === today && D.fireDue(k) ? '<a class="firelink" href="#campfire">🔥 Campfire this week: 10 minutes to review ›</a>' : '';
     return `${notice}
       <div class="dayswitch" role="group" aria-label="Day"><button type="button" class="nav" data-act="day" data-to="-1"${back >= 3 ? ' disabled' : ''} aria-label="Previous day">‹</button><b>${esc(niceDay(k, today))}</b><span>${esc(longDay(k))}</span><button type="button" class="nav" data-act="day" data-to="1"${back <= 0 ? ' disabled' : ''} aria-label="Next day">›</button></div>
       ${onboard}${k === today && D.logicalHour() < 13 ? lastNight(today) : ''}

@@ -1,4 +1,9 @@
-# Daily Dashboard
+# Deck + Dashboard
+
+Two separate apps on one GitHub Pages site:
+- **Deck** (site root, `index.html`): habits, tasks, chores, campfire. This is also what the Android app opens.
+- **Dashboard** (`dashboard/`): weather, news, music, fact of the day. Install it separately from `/dashboard/`.
+
 
 Weather (Teaneck), headlines, YouTube Music quick-play + KROQ-era rotation, fact of the day.
 Plain static files, no build step.

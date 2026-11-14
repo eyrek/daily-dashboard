@@ -1,6 +1,6 @@
 {
-  "name": "Daily Dashboard",
-  "short_name": "Dashboard",
+  "name": "Deck",
+  "short_name": "Deck",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -30,7 +30,7 @@
     {
       "name": "Today's hand",
       "short_name": "Today",
-      "url": "./deck.html#today",
+      "url": "./#today",
       "icons": [
         {
           "src": "icon-192.png",
@@ -41,7 +41,7 @@
     {
       "name": "Campfire review",
       "short_name": "Campfire",
-      "url": "./deck.html#campfire",
+      "url": "./#campfire",
       "icons": [
         {
           "src": "icon-192.png",
@@ -52,7 +52,7 @@
     {
       "name": "Habits",
       "short_name": "Habits",
-      "url": "./deck.html#habits",
+      "url": "./#habits",
       "icons": [
         {
           "src": "icon-192.png",
