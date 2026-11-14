@@ -58,3 +58,16 @@ GitHub may run scheduled jobs a few minutes late. GitHub also pauses scheduled w
 60 days without commits; it emails a warning, and any commit or a click on "Enable workflow" turns them back on.
 
 Tests: `node --test tests/core.test.js` and `node --test tests/push.test.mjs` (needs `npm i web-push` for the last one).
+
+## Android app
+`android/` is a Capacitor shell that loads the live site (https://eyrek.github.io/daily-dashboard/), so web changes
+reach the app without reinstalling. Inside the app, `deck-notify.js` schedules reminders on the phone with Android's
+alarm system (exact times, skips anything done/excused/paused, trash nights follow Settings). No server, no codes.
+
+- Build: `.github/workflows/android.yml` runs on changes to `android/`, `capacitor.config.json` or `package*.json`
+  and publishes `dashboard.apk` to the `android-latest` release.
+- Install: open https://github.com/eyrek/daily-dashboard/releases/download/android-latest/dashboard.apk on the phone.
+- Signing: `android/app/dashboard.keystore` keeps the signature stable so updates install over the old app.
+  It's committed to this public repo for convenience; anyone could sign an app that looks like an update to this one,
+  so only install APKs from this repo's release page. Moving the key into a repo secret is the stricter option.
+- Data inside the app is separate from Chrome's copy; move it with Settings → Copy save code → Merge.
