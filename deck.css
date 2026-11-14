@@ -108,3 +108,15 @@
 .pt{position:absolute;left:50%;top:38%;width:14px;height:14px;margin:-7px 0 0 -7px}
 @media(max-width:600px){.hand{grid-template-columns:minmax(0,1fr)}.tc{min-height:0}.tcb{flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px 44px 12px 12px}.tt{flex:1}.ts,.tp{flex-basis:100%}.tp{margin-top:0}.tc.add{flex-direction:column}.stamp{bottom:auto;top:12px;right:44px}}
 @media(prefers-reduced-motion:reduce){.pip,.toast{transition:none}}
+/* calendar */
+.agenda{border:2px solid var(--line);border-radius:14px;background:var(--cardbg);padding:12px 14px;margin-bottom:14px}
+.ag-h{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}.ag-h b{font:700 16px "Space Grotesk",Inter,sans-serif}.ag-h small{color:var(--mut)}
+.agenda ul{list-style:none;margin:0;padding:0}
+.agenda li{display:flex;gap:12px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}.agenda li:first-child{border-top:0}
+.agenda time{flex:none;width:70px;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
+.agenda li span{display:flex;align-items:center;gap:8px}.agenda li i{width:8px;height:8px;border-radius:50%;flex:none}
+.agenda li.past{opacity:.5}
+.agenda .sm{margin-top:6px}
+.calbtn{position:absolute;bottom:8px;right:6px;width:36px;height:36px;border:0;background:none;border-radius:50%;cursor:pointer;font-size:17px;opacity:.75}
+.calbtn.on{opacity:1}
+.weekcal{list-style:none;margin:0 0 6px;padding:0;font-size:14px}.weekcal li{padding:6px 0;border-top:1px solid var(--line)}.weekcal li:first-child{border-top:0}

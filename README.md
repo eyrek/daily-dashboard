@@ -76,3 +76,8 @@ alarm system (exact times, skips anything done/excused/paused, trash nights foll
   It's committed to this public repo for convenience; anyone could sign an app that looks like an update to this one,
   so only install APKs from this repo's release page. Moving the key into a repo secret is the stricter option.
 - Data inside the app is separate from Chrome's copy; move it with Settings → Copy save code → Merge.
+
+## Google Calendar (Android app)
+`deck-calendar.js` reads the phone's calendar (Google Calendar syncs to it) through `@ebarooni/capacitor-calendar`:
+today's events on the hand, the workout session from events named after a session ("Push day"), next week at the
+campfire, and ⏰ on a task to open the system event editor. Settings → Calendar picks which calendars to include.

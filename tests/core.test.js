@@ -207,3 +207,12 @@ test('a failed graduation check waits for the next campfire', () => {
   day(D, '2026-12-27'); D.submitFire({ ratings: { wake: 7 } });
   assert.ok(D.candidates().some(x => x.lid === 'wake'));
 });
+
+test('workout can be logged as the session the calendar says, and the rotation follows it', () => {
+  const { D } = make('2026-11-16T12:00');
+  assert.equal(D.sessionFor(D.today()), 'Deadlift');
+  D.logWorkout('done', D.today(), 'Squat');
+  assert.equal(D.S.workout.log[D.today()].s, 'Squat');
+  day(D, '2026-11-17'); assert.equal(D.sessionFor(D.today()), 'Pull');
+  D.logWorkout('done', D.today(), 'NotASession'); assert.equal(D.S.workout.log[D.today()].s, 'Pull');
+});

@@ -155,6 +155,7 @@ legend{padding:0}
 <script src="deck-ui.js"></script>
 <script src="deck-push.js"></script>
 <script src="deck-notify.js"></script>
+<script src="deck-calendar.js"></script>
 <script>
 {
 const D = Deck, U = DeckUI, esc = D.esc, $ = id => document.getElementById(id);
@@ -303,7 +304,7 @@ function scale(name, val, label) {
 function campfire() {
   const k = D.today(), cur = D.currentFire(k), last = S().fires.slice().sort((a, b) => (a.date < b.date ? 1 : -1))[0];
   $('firesub').textContent = (cur ? `This week's campfire is done (${nice(cur.date)}). You can still edit it.` : last ? `Last campfire: ${nice(last.date)}.` : 'Your first campfire.') + ' Best on Sunday evening or Monday. Ten minutes.';
-  $('votes').innerHTML = votes();
+  $('votes').innerHTML = votes() + (window.DeckCal && DeckCal.native ? `<h3 style="font-size:15px;margin:14px 0 6px">Next week on your calendar</h3>${DeckCal.weekHTML()}` : '');
   $('grads').innerHTML = D.candidates(k).map(g => `<form class="grad" data-grad="${g.cid}|${g.lid}"><h3>◆ Ready to graduate? ${esc(g.name)}</h3><p class="hint">In training 4+ weeks, rated 6+ at the last two campfires, strength ${Math.round(g.strength * 100)}%. Four quick questions (1 = disagree, 7 = agree). "${esc(g.name)}…"</p>${D.SRBAI.map((q, i) => scale('q' + i, null, '…' + q)).join('')}<div class="row"><button class="sm pri" type="submit">Check</button></div></form>`).join('');
   const training = []; D.trainingCards(k).forEach(c => D.linksAt(c, k, 'training').forEach(l => training.push({ c, l })));
   const relics = S().relics.filter(r => !r.purged);
@@ -360,6 +361,7 @@ function settings() {
       <p class="hint">The rotation moves on only when you log a workout or rest day. Skips don't advance it.</p></div>
     <div class="row"><button class="sm pri" type="submit">Save settings</button></div>
   </form>
+  <div class="set" id="calbox"></div>
   <div class="set" id="pushbox"><h3>Notifications</h3><p class="hint">Checking this device…</p></div>
   <div class="set"><h3>Pause</h3><p class="hint">Sick, travelling, or a rough week: paused days don't count against any habit.</p>
     <form class="row" id="pausef"><label class="f">From<input type="date" name="from" value="${k}"></label><label class="f">To<input type="date" name="to" value="${k}"></label><button class="sm" type="submit" style="align-self:flex-end">Pause</button></form>
@@ -373,8 +375,32 @@ function settings() {
     <div class="row" style="margin-top:8px"><button type="button" class="sm" id="saveraw">Save raw data</button><button type="button" class="sm ghost" id="reset">Reset deck to the starting setup</button></div></details>
   <p class="hint" style="margin-top:12px">News, weather and music live in the separate <a href="dashboard/">Dashboard app</a>. Deck data version ${D.VERSION}. Most changes can be undone from the message at the bottom of the screen.</p>`;
   rawLoaded = false;
-  pushBox();
+  pushBox(); calBox();
 }
+async function calBox() {
+  const box = $('calbox'); if (!box) return;
+  if (!(window.DeckCal && DeckCal.native)) { box.innerHTML = '<h3>Calendar</h3><p class="hint">Your Google Calendar shows up in the Android app, where it can read your phone\u2019s calendar. It isn\u2019t available in the browser.</p>'; return; }
+  const st = DeckCal.settings(), perm = await DeckCal.permission();
+  if (perm !== 'granted') { box.innerHTML = `<h3>Calendar</h3><p class="hint">Show today's events on your hand, take the workout session from your calendar, and put tasks on your calendar.</p><div class="row"><button type="button" class="sm pri" id="cal-on">Connect calendar</button></div>`; return; }
+  const cals = await DeckCal.listCalendars(), hidden = new Set(st.hidden.map(String));
+  box.innerHTML = `<h3>Calendar</h3>
+    <label class="layer" style="border:0"><input type="checkbox" id="cal-show"${st.show ? ' checked' : ''}><span>Show today's calendar on my hand</span></label>
+    ${cals.length ? `<p class="hint">Calendars to include:</p><div class="days">${cals.map(c => `<label><input type="checkbox" data-calid="${esc(String(c.id))}"${hidden.has(String(c.id)) ? '' : ' checked'}> ${c.color ? `<i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${esc(c.color)}"></i>` : ''}${esc(c.title || c.accountName || 'Calendar')}</label>`).join('')}</div>` : ''}
+    <p class="hint">Workout events named after a session (e.g. "Push day") set that day's workout. Tap ⏰ on a task to put it on your calendar.</p>`;
+}
+document.addEventListener('click', async e => {
+  if (e.target.id !== 'cal-on') return;
+  try { await DeckCal.connect(); U.toast('Calendar connected.'); } catch (err) { U.toast(err.message); }
+  calBox();
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'cal-show') { U.act(DeckCal.setSettings({ show: t.checked }), true); }
+  if (t.dataset && t.dataset.calid) {
+    const hidden = new Set(DeckCal.settings().hidden.map(String)); if (t.checked) hidden.delete(t.dataset.calid); else hidden.add(t.dataset.calid);
+    U.act(DeckCal.setSettings({ hidden: [...hidden] }), true); DeckCal.refresh(true);
+  }
+});
 const REPO = 'https://github.com/eyrek/daily-dashboard';
 let reminderList = null;
 const APK = REPO + '/releases/download/android-latest/deck.apk';
@@ -479,6 +505,7 @@ function render(v) {
   if (v === 'settings' && !busy($('sets'))) settings();
 }
 D.onChange(() => render());
+window.__deckCalChanged = () => { if (current() === 'campfire') $('votes').innerHTML = votes() + (DeckCal.native ? `<h3 style="font-size:15px;margin:14px 0 6px">Next week on your calendar</h3>${DeckCal.weekHTML()}` : ''); };
 route();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }

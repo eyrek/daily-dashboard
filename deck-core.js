@@ -294,8 +294,8 @@
     }
     const sessionFor = d => (S.workout.log[d] && S.workout.log[d].s) || nextSession(d);
     const workoutResult = d => (S.workout.log[d] || {}).r || '';
-    const logWorkout = (r, d = today()) => commit(r ? 'Workout logged' : 'Workout cleared', () => {
-      const s = sessionFor(d);
+    const logWorkout = (r, d = today(), session) => commit(r ? 'Workout logged' : 'Workout cleared', () => {
+      const s = session && S.workout.cycle.includes(session) ? session : sessionFor(d);
       if (!r) { if (S.workout.log[d] && S.workout.log[d].pick) S.workout.log[d].r = ''; else delete S.workout.log[d]; }
       else S.workout.log[d] = Object.assign({}, S.workout.log[d], { s, r });
     });
@@ -333,6 +333,7 @@
       if (tasks(d).length >= 3) return { ok: false, msg: 'Out of energy: 3 tasks is today’s limit. Park it in Later.' };
       return commit('Task added', () => { (S.tasks[d] = S.tasks[d] || []).push({ id: uid(), text, step, done: false }); });
     }
+    const patchTask = (id, patch, d = today()) => commit('Task updated', () => { const t = tasks(d).find(x => x.id === id); if (!t) return { error: 'Task not found.' }; Object.assign(t, patch); });
     const toggleTask = (id, d = today()) => commit('Task', () => { const t = tasks(d).find(x => x.id === id); if (t) t.done = !t.done; });
     const removeTask = (id, d = today()) => commit('Task removed', () => {
       const t = tasks(d).find(x => x.id === id); if (!t) return; if (t.done) return { error: 'Played cards stay played.' };
@@ -583,7 +584,7 @@
       toggleLink, toggleMin, toggleSkip, playAll,
       nextSession, sessionFor, workoutResult, logWorkout, pickSession, workoutWeek,
       choresDue, choreDoneOn, toggleChore,
-      tasks, addTask, toggleTask, removeTask, later, takeLater, parkTask, dropLater,
+      tasks, addTask, patchTask, toggleTask, removeTask, later, takeLater, parkTask, dropLater,
       relicName, candidates, graduationCheck, graduate, crack, currentFire, fireDue, submitFire,
       draft, shelve, addBench, removeBench, updateCard, updateLink, moveLink, addLink, removeLink, newCard,
       toggleLayer, setPlan, logSlip, undoSlip, addCurse, purgeCurse,

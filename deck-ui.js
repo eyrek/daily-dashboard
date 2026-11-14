@@ -128,19 +128,21 @@
   }
 
   function workoutBlock(k) {
-    const s = D.sessionFor(k), r = D.workoutResult(k), W = D.S.workout, wk = D.workoutWeek(k);
+    const W = D.S.workout, logged = W.log[k] || {}, hint = window.DeckCal && DeckCal.workoutHint(k);
+    const s = logged.s || (hint && hint.session) || D.sessionFor(k), r = D.workoutResult(k), wk = D.workoutWeek(k);
+    const fromCal = hint && !logged.s ? `<p class="hint">From your calendar: ${esc(hint.title)}</p>` : '';
     const opts = W.cycle.map(x => `<option${x === s ? ' selected' : ''}>${esc(x)}</option>`).join('');
     const label = s === 'Rest' ? 'Rest day' : `${s} day`;
     const res = { done: 'Done ✓', rest: 'Rested ✓', skip: 'Skipped' }[r] || '';
-    return `<section class="wo${r ? ' logged' : ''}" aria-label="Workout"><div class="wo-h">${idMark('Healthy', 18)}<b>Workout: ${esc(label)}</b>${res ? `<span class="badge">${res}</span>` : ''}<small>${wk} this week</small></div>
-      <div class="row">${r ? `<button type="button" class="sm ghost" data-act="wo" data-r="" data-d="${k}">Change</button>` : (s === 'Rest' ? `<button type="button" class="sm pri" data-act="wo" data-r="rest" data-d="${k}">Rested</button>` : `<button type="button" class="sm pri" data-act="wo" data-r="done" data-d="${k}">Done</button><button type="button" class="sm" data-act="wo" data-r="rest" data-d="${k}">Rest day</button>`) + `<button type="button" class="sm ghost" data-act="wo" data-r="skip" data-d="${k}">Skip</button>`}
+    return `<section class="wo${r ? ' logged' : ''}" aria-label="Workout"><div class="wo-h">${idMark('Healthy', 18)}<b>Workout: ${esc(label)}</b>${res ? `<span class="badge">${res}</span>` : ''}<small>${wk} this week</small></div>${fromCal}
+      <div class="row">${r ? `<button type="button" class="sm ghost" data-act="wo" data-r="" data-d="${k}">Change</button>` : (s === 'Rest' ? `<button type="button" class="sm pri" data-act="wo" data-r="rest" data-s="${esc(s)}" data-d="${k}">Rested</button>` : `<button type="button" class="sm pri" data-act="wo" data-r="done" data-s="${esc(s)}" data-d="${k}">Done</button><button type="button" class="sm" data-act="wo" data-r="rest" data-s="Rest" data-d="${k}">Rest day</button>`) + `<button type="button" class="sm ghost" data-act="wo" data-r="skip" data-d="${k}">Skip</button>`}
       ${r ? '' : `<label class="pick">Swap to <select data-act="pick" data-d="${k}" aria-label="Swap today's session">${opts}</select></label>`}</div></section>`;
   }
 
   function tasksBlock(k, today) {
     const t = D.tasks(k), done = t.filter(x => x.done).length, isToday = k === today;
     const pips = [0, 1, 2].map(i => `<span class="pip${i < done ? ' spent' : ''}${i >= t.length ? ' free' : ''}" aria-hidden="true"></span>`).join('');
-    const slots = t.map(x => `<div class="tc${x.done ? ' played' : ''}"><button type="button" class="tcb" data-act="task" data-id="${x.id}" data-d="${k}" aria-pressed="${x.done}"><span class="cost">1</span><span class="tt">${esc(x.text)}</span>${x.step ? `<span class="ts">First step: ${esc(x.step)}</span>` : ''}<span class="tp">${x.done ? 'Played' : 'Tap to play'}</span><span class="stamp" aria-hidden="true">PLAYED</span></button>${x.done ? '' : `<button type="button" class="rm" data-act="rmtask" data-id="${x.id}" data-d="${k}" aria-label="Remove ${esc(x.text)}">×</button>`}</div>`);
+    const slots = t.map(x => `<div class="tc${x.done ? ' played' : ''}"><button type="button" class="tcb" data-act="task" data-id="${x.id}" data-d="${k}" aria-pressed="${x.done}"><span class="cost">1</span><span class="tt">${esc(x.text)}</span>${x.step ? `<span class="ts">First step: ${esc(x.step)}</span>` : ''}<span class="tp">${x.done ? 'Played' : 'Tap to play'}</span><span class="stamp" aria-hidden="true">PLAYED</span></button>${x.done ? '' : `<button type="button" class="rm" data-act="rmtask" data-id="${x.id}" data-d="${k}" aria-label="Remove ${esc(x.text)}">×</button>`}${!x.done && window.DeckCal && DeckCal.native && DeckCal.granted ? `<button type="button" class="calbtn${x.cal ? ' on' : ''}" data-act="sched" data-id="${x.id}" data-d="${k}" aria-label="Put ${esc(x.text)} on your calendar" title="Put on calendar">⏰</button>` : ''}</div>`);
     if (t.length < 3) slots.push(`<form class="tc add" data-act="addtask" data-d="${k}"><label class="sr" for="nt-${k}">New task</label><input id="nt-${k}" name="t" placeholder="Add a task" maxlength="80" autocomplete="off" enterkeyhint="done"><details class="stepd"><summary>+ first step</summary><input name="s" placeholder="First tiny step" maxlength="80" autocomplete="off" aria-label="First tiny step"></details><button type="submit" class="sm">Add</button></form>`);
     const later = isToday ? D.later(k) : [];
     const laterHTML = later.length ? `<details class="later"${t.length < 3 ? '' : ''}><summary>Later (${later.length})</summary><div class="chips">${later.slice(0, 12).map(x => `<span class="lchip"><button type="button" class="chip" data-act="take" data-from="${x.d}" data-id="${x.id}"${t.length >= 3 ? ' disabled' : ''}>↩ ${esc(x.text)}</button><button type="button" class="x" data-act="drop" data-from="${x.d}" data-id="${x.id}" aria-label="Drop ${esc(x.text)}">×</button></span>`).join('')}</div></details>` : '';
@@ -161,12 +163,14 @@
     return `${notice}
       <div class="dayswitch" role="group" aria-label="Day"><button type="button" class="nav" data-act="day" data-to="-1"${back >= 3 ? ' disabled' : ''} aria-label="Previous day">‹</button><b>${esc(niceDay(k, today))}</b><span>${esc(longDay(k))}</span><button type="button" class="nav" data-act="day" data-to="1"${back <= 0 ? ' disabled' : ''} aria-label="Next day">›</button></div>
       ${onboard}${k === today && D.logicalHour() < 13 ? lastNight(today) : ''}
+      ${window.DeckCal ? DeckCal.stripHTML(k) : ''}
       ${tasksBlock(k, today)}
       <div class="habits">${cards.map(c => habitCard(c, k, today)).join('') || '<p class="hint">No habit cards in training. Draft one from the draw pile.</p>'}</div>
       ${workoutBlock(k)}
       ${chores ? `<div class="chores"><span class="elabel">Due</span>${chores}</div>` : ''}${fire}`;
   }
 
+  const draws = new Set();
   function mountHand(el) {
     let view = D.today(), wantFocus = false, lastPlayed = new Set(), drew = false;
     const playedSet = () => { const s = new Set(); for (const c of D.S.cards) if (D.isPlayed(c, view)) s.add(c.id); D.tasks(view).forEach(t => t.done && s.add(t.id)); return s; };
@@ -193,10 +197,12 @@
       if (a === 'all') act(D.playAll(b.dataset.c, d), true);
       if (a === 'min') act(D.toggleMin(b.dataset.c, d), true);
       if (a === 'skip') act(D.toggleSkip(b.dataset.c, d));
-      if (a === 'wo') act(D.logWorkout(b.dataset.r, d), true);
+      if (a === 'wo') act(D.logWorkout(b.dataset.r, d, b.dataset.s || undefined), true);
       if (a === 'take') act(D.takeLater(b.dataset.from, b.dataset.id, view));
       if (a === 'drop') act(D.dropLater(b.dataset.from, b.dataset.id));
       if (a === 'onboarded') act(D.setSettings({ onboarded: true }), true);
+      if (a === 'calconnect') DeckCal.connect().then(() => toast('Calendar connected.')).catch(err => toast(err.message));
+      if (a === 'sched') { const t = D.tasks(d).find(x => x.id === b.dataset.id); if (t) DeckCal.scheduleTask(t.text).then(() => act(D.patchTask(t.id, { cal: true }, d), true)).catch(err => toast(err.message)); }
     });
     el.addEventListener('change', e => {
       const i = e.target, a = i.dataset && i.dataset.act; if (!a) return;
@@ -209,7 +215,7 @@
       if (f.dataset.act === 'addtask') { wantFocus = true; const r = act(D.addTask(f.t.value, f.s ? f.s.value : '', f.dataset.d), true); if (!r.ok) wantFocus = false; }
       if (f.dataset.act === 'park') { if (f.t.value.trim()) { wantFocus = true; act(D.parkTask(f.t.value)); } }
     });
-    D.onChange(draw);
+    D.onChange(draw); draws.add(draw);
     window.addEventListener('storage', e => { if (e.key === D.KEY) D.reloadFromStorage(); });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (el.dataset.today !== D.today()) view = D.today(); draw(); } });
     setInterval(() => { if (el.dataset.today !== D.today()) { view = D.today(); draw(); } }, 60000);
@@ -217,5 +223,5 @@
     return { draw, setView(k) { view = k; draw(); } };
   }
 
-  window.DeckUI = { ID, idMark, emblem, toast, act, celebrate, stampIn, mountHand, habitCard, weekStrip, meter, longDay };
+  window.DeckUI = { refresh: () => draws.forEach(f => f()), ID, idMark, emblem, toast, act, celebrate, stampIn, mountHand, habitCard, weekStrip, meter, longDay };
 })();
