@@ -1,52 +1,110 @@
-/* Shared styles for the hand (index.html + deck.html). Uses the page's --bg/--card/--ink/--mut/--line/--acc. */
-.energy{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.elabel,.clabel{font-size:13px;font-weight:600;color:var(--mut);margin-right:2px}
-.pip{width:22px;height:22px;border-radius:50%;background:var(--acc);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18),0 0 0 3px color-mix(in srgb,var(--acc) 22%,transparent);transition:transform .25s,opacity .25s}
-.pip.spent{opacity:.22;transform:scale(.8);box-shadow:none}
-.ecount{font-size:13px;color:var(--mut);margin-left:4px}
-.hand{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.tc{position:relative;min-height:138px;border-radius:14px;background:var(--bg);border:2px solid var(--line);display:flex}
-.tc.empty{border-style:dashed;opacity:.5}
-.tcb{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;flex-direction:column;gap:6px;padding:14px 14px 12px;border-radius:12px}
-.tcb:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-.cost{width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font:700 13px/24px Inter,sans-serif;text-align:center}
-.tt{font-weight:600;font-size:16px;line-height:1.3}
+/* Deck styles, "Tabletop" direction: flat printed cards, thick ink edges, offset shadows, one strong colour per card type.
+   Shared by index.html (Today's hand card) and deck.html. Pages provide --bg --card --ink --mut --line --acc. */
+:root{--cardbg:light-dark(#ffffff,#1a1d28);--edge:light-dark(#12141c,#5a6075);--sh:light-dark(#12141c,#000);--acct:light-dark(#c63b17,#ff8466);--accd:#c63b17;--curse:light-dark(#6d3fd6,#a98bff)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hint{color:var(--mut);font-size:13px;margin:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sm{font:600 13px Inter,sans-serif;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid var(--edge);background:var(--cardbg);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.2;text-align:left}
+.sm.pri{background:var(--accd);border-color:var(--accd);color:#fff}
+.sm.ghost{border-color:var(--line);background:transparent}
+.sm:disabled{opacity:.45;cursor:not-allowed}
+.sm:focus-visible,.tcb:focus-visible,.chip:focus-visible,.nav:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.banner{margin:0 0 12px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--acc) 16%,var(--cardbg));border:1.5px solid var(--acct);font-size:14px}
+.dayswitch{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.dayswitch b{font:700 17px "Space Grotesk",Inter,sans-serif}
+.dayswitch span{color:var(--mut);font-size:13px}
+.nav{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--cardbg);color:var(--ink);font-size:20px;line-height:1;cursor:pointer}
+.nav:last-child{margin-left:auto}.nav:disabled{opacity:.3;cursor:default}
+.onboard,.lastnight{border:2.5px solid var(--edge);box-shadow:4px 4px 0 var(--sh);border-radius:14px;background:var(--cardbg);padding:14px;margin-bottom:14px}
+.onboard ol{margin:6px 0 10px;padding-left:20px;font-size:14px}.onboard a{color:var(--acct);font-weight:600}
+.lastnight{border-color:var(--acct)}
+.lastnight h3{margin:0 0 2px;font:700 16px "Space Grotesk",Inter,sans-serif}
+.ln{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.ln-links{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--cardbg);font:500 13px Inter,sans-serif;color:var(--ink);cursor:pointer}
+.chip input{width:18px;height:18px;margin:0;accent-color:var(--accd)}
+.chip.on{border-color:var(--accd)}.chip.on span{text-decoration:line-through;color:var(--mut)}
+/* energy + task cards */
+.energy{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.elabel{font-size:13px;font-weight:600;color:var(--mut)}
+.pip{width:22px;height:22px;border-radius:50%;background:var(--acc);border:2px solid var(--edge);box-shadow:inset 3px 3px 0 rgba(255,255,255,.35);transition:transform .25s,opacity .25s}
+.pip.spent{opacity:.22;transform:scale(.8)}
+.ecount{font-size:13px;color:var(--mut)}
+.hand{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tc{position:relative;min-height:132px;border-radius:14px;background:var(--cardbg);border:2.5px solid var(--edge);box-shadow:4px 4px 0 var(--sh);display:flex;overflow:hidden}
+.tc::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:var(--acc)}
+.tcb{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;flex-direction:column;gap:6px;padding:16px 14px 12px}
+.cost{width:26px;height:26px;border-radius:50%;background:var(--acc);border:2px solid var(--edge);color:#fff;font:700 13px/22px "Space Grotesk",Inter,sans-serif;text-align:center}
+.tt{font:700 16px/1.25 "Space Grotesk",Inter,sans-serif;padding-right:24px}
 .ts{font-size:13px;color:var(--mut);line-height:1.35}
-.tp{margin-top:auto;font-size:13px;font-weight:600;color:var(--acc)}
-.tc.played{border-color:transparent;background:color-mix(in srgb,var(--line) 55%,transparent)}
-.tc.played .tt{text-decoration:line-through;opacity:.6}.tc.played .cost{opacity:.3}.tc.played .tp{color:var(--mut)}
-.rm{position:absolute;top:6px;right:6px;width:32px;height:32px;min-height:0;padding:0;border:0;background:none;color:var(--mut);font-size:20px;border-radius:50%;cursor:pointer}
-.tc.add{flex-direction:column;gap:6px;padding:10px;border-style:dashed}
-.tc.add input{font:16px Inter,sans-serif;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:40px}
-.tc.add button{margin-top:auto;justify-content:center;min-height:40px}
-.carry{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:13px;color:var(--mut)}
-.carry .chip{min-height:36px;font-size:13px}
-.combos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px;margin-top:14px}
-.combo{background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
-.combo.played{border-color:color-mix(in srgb,var(--acc) 55%,var(--line))}
-.combo header{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.combo h3{margin:0;font:700 17px "Space Grotesk",Inter,sans-serif;color:var(--ink)}
-.badge{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--card);color:var(--mut);white-space:nowrap}
-.combo.played .badge{background:var(--acc);color:#fff}
+.tp{margin-top:auto;font-size:13px;font-weight:700;color:var(--acct)}
+.stamp{position:absolute;right:10px;bottom:10px;transform:rotate(-12deg);font:700 14px "Space Grotesk",Inter,sans-serif;letter-spacing:.06em;color:var(--acct);border:2.5px solid var(--acct);border-radius:8px;padding:1px 7px;opacity:0;pointer-events:none}
+.tc.played{transform:rotate(-1deg);box-shadow:1px 1px 0 var(--sh);background:light-dark(#f1f2f5,#161821)}
+.tc.played::before{background:var(--mut)}
+.tc.played .tt,.tc.played .ts{opacity:.5}.tc.played .cost{filter:grayscale(1);opacity:.4}.tc.played .tp{visibility:hidden}.tc.played .stamp{opacity:1}
+.rm{position:absolute;top:8px;right:6px;width:36px;height:36px;border:0;background:none;color:var(--mut);font-size:20px;border-radius:50%;cursor:pointer}
+.tc.add{flex-direction:column;gap:6px;padding:14px 10px 10px;border-style:dashed;box-shadow:none}
+.tc.add::before{display:none}
+.tc.add input{font:16px Inter,sans-serif;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);min-height:42px;width:100%}
+.stepd summary{font-size:13px;color:var(--mut);cursor:pointer;min-height:28px;display:flex;align-items:center}
+.stepd[open] summary{margin-bottom:4px}
+.tc.add .sm{margin-top:auto;align-self:flex-start}
+.later{margin-top:10px}.later summary{font-size:14px;font-weight:600;cursor:pointer;min-height:36px;display:flex;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.lchip{display:inline-flex;align-items:center}.lchip .x{border:0;background:none;color:var(--mut);width:32px;height:38px;cursor:pointer;font-size:16px}
+.park{display:flex;gap:8px;margin-top:10px}.park input{flex:1;font:15px Inter,sans-serif;padding:8px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);min-height:40px}
+/* habit cards */
+.habits{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px;margin-top:16px}
+.hc{position:relative;background:var(--cardbg);border:2.5px solid var(--edge);border-radius:14px;box-shadow:4px 4px 0 var(--sh);padding:18px 14px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.hc::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:var(--ink)}
+.hc.played::before{background:var(--acc)}.hc.played{border-color:var(--acct)}
+.hc.off{padding:12px 14px;box-shadow:none;border-style:dashed;opacity:.75}.hc.off::before{display:none}
+.hc header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hc h3{margin:0;font:700 17px "Space Grotesk",Inter,sans-serif}
+.badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--card);color:var(--mut);white-space:nowrap}
+.hc.played .badge{background:var(--accd);color:#fff}
 .cue{margin:0;font-size:13px;color:var(--mut)}
 .links{display:flex;flex-direction:column}
-.lk{display:flex;align-items:center;gap:10px;min-height:44px;padding:4px 2px;border-top:1px solid var(--line);cursor:pointer;font-size:15px}
+.lk{display:flex;align-items:center;gap:10px;min-height:44px;padding:4px 2px;border-top:1.5px solid var(--line);cursor:pointer;font-size:15px}
 .lk:first-child{border-top:0}
-.lk input,.chore input{width:22px;height:22px;accent-color:var(--acc);flex:none;margin:0}
-.lk span{flex:1}
-.lk.on span{color:var(--mut);text-decoration:line-through}
-.lk em{font-style:normal;font-size:11px;font-weight:600;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:1px 7px}
-.lk.auto span{color:var(--mut)}
-.nudge{margin:0;font-size:13px;padding:8px 10px;border-radius:10px;background:var(--card);color:var(--ink)}
+.lk input,.chore input{width:22px;height:22px;accent-color:var(--accd);flex:none;margin:0}
+.lk span{flex:1}.lk.on span{color:var(--mut);text-decoration:line-through}
+.idmark{flex:none;display:inline-block;vertical-align:middle}
+.auto{margin:0;font-size:13px;color:var(--mut)}
+.nudge{margin:0;font-size:13px;padding:8px 10px;border-radius:10px;background:var(--card)}
 .nudge.hard{background:color-mix(in srgb,var(--acc) 16%,var(--card))}
-.combo footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
-.combo footer small{color:var(--mut);font-size:13px}
-.minbtn{min-height:40px;font-size:13px;text-align:left;line-height:1.25;padding:6px 12px}
-.minbtn.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.chores{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
-.chore{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:14px;font-weight:500}
-.chore.on span{text-decoration:line-through;color:var(--mut)}
-.fire{display:block;margin-top:14px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--acc) 14%,var(--bg));font-weight:600;text-decoration:none}
-.empty-note{color:var(--mut);font-size:14px;margin:0}
-@media(max-width:600px){.hand{grid-template-columns:minmax(0,1fr)}.tc.empty{display:none}.tc{min-height:0}.tcb{flex-direction:row;flex-wrap:wrap;align-items:center;padding-right:40px}.tt{flex:1}.ts,.tp{flex-basis:100%}.tp{margin-top:0}}
-@media(prefers-reduced-motion:reduce){.pip{transition:none}}
+.hc-actions{display:flex;flex-wrap:wrap;gap:6px}
+.minbtn.on{background:var(--accd);border-color:var(--accd);color:#fff}
+.hc footer{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:12px;color:var(--mut);margin-top:auto;padding-top:4px}
+.rec{flex:1}
+.strip{display:inline-flex;gap:3px}.strip i{width:12px;height:12px;border-radius:3px;background:var(--line)}
+.h-played,.h-relic{background:var(--acc)!important}.h-min{background:color-mix(in srgb,var(--acc) 50%,var(--line))!important}
+.h-missed{background:transparent!important;box-shadow:inset 0 0 0 1.5px var(--mut)}.h-today{background:transparent!important;box-shadow:inset 0 0 0 2px var(--edge)}
+.h-skip,.h-pause{background:repeating-linear-gradient(45deg,var(--line) 0 2px,transparent 2px 4px)!important}
+.h-off,.h-none,.h-future{background:var(--card)!important;opacity:.6}
+.str{display:inline-flex;align-items:center;gap:6px}
+.meter{display:inline-block;width:56px;height:8px;border-radius:99px;background:var(--line);overflow:hidden}.meter i{display:block;height:100%;background:var(--acc)}
+/* workout + chores */
+.wo{margin-top:12px;border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--cardbg)}
+.wo.logged{border-color:var(--acct)}
+.wo-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.wo-h b{font:700 16px "Space Grotesk",Inter,sans-serif}.wo-h small{margin-left:auto;color:var(--mut)}
+.pick{font-size:13px;color:var(--mut);display:inline-flex;align-items:center;gap:6px}
+.pick select{font:14px Inter,sans-serif;min-height:40px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:0 8px}
+.chores{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+.chore{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--cardbg);cursor:pointer;font-size:14px;font-weight:500}
+.chore small{color:var(--mut);font-weight:400}.chore.on span{text-decoration:line-through;color:var(--mut)}
+.firelink{display:block;margin-top:12px;padding:12px 14px;border-radius:12px;border:2px solid var(--acct);background:color-mix(in srgb,var(--acc) 10%,var(--cardbg));font-weight:600;text-decoration:none;color:var(--ink)}
+/* toast + celebration */
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translate(-50%,160%);display:flex;align-items:center;gap:14px;max-width:min(92vw,520px);padding:10px 10px 10px 16px;border-radius:14px;background:var(--ink);color:var(--bg);box-shadow:4px 4px 0 var(--acc);font-size:14px;z-index:50;transition:transform .25s}
+.toast.show{transform:translate(-50%,0)}
+.toast button{font:700 14px Inter,sans-serif;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:var(--acc);color:#12141c;cursor:pointer}
+.celebrate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(2px);padding:16px}
+.cel-card{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:24px 22px;max-width:360px;background:var(--cardbg);border:2.5px solid var(--edge);border-radius:18px;box-shadow:6px 6px 0 var(--sh)}
+.cel-k{margin:10px 0 0;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--acct)}
+.cel-card h3{margin:0;font:700 22px "Space Grotesk",Inter,sans-serif}
+.cel-v{margin:2px 0 12px;font-size:13px;color:var(--mut);display:flex;align-items:center;gap:6px}
+.cel-card button{font:700 15px "Space Grotesk",Inter,sans-serif;min-height:44px;padding:0 22px;border-radius:12px;border:2.5px solid var(--edge);background:var(--accd);color:#fff;box-shadow:3px 3px 0 var(--sh);cursor:pointer}
+.parts{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.pt{position:absolute;left:50%;top:38%;width:14px;height:14px;margin:-7px 0 0 -7px}
+@media(max-width:600px){.hand{grid-template-columns:minmax(0,1fr)}.tc{min-height:0}.tcb{flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px 44px 12px 12px}.tt{flex:1}.ts,.tp{flex-basis:100%}.tp{margin-top:0}.tc.add{flex-direction:column}.stamp{bottom:auto;top:12px;right:44px}}
+@media(prefers-reduced-motion:reduce){.pip,.toast{transition:none}}

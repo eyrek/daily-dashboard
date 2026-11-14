@@ -113,7 +113,8 @@ h3{font-size:14px;font-weight:600;color:var(--mut);margin:0 0 6px}
     </section>
   </main>
 </div>
-<script src="deck.js"></script>
+<script src="deck-core.js"></script>
+<script src="deck-ui.js"></script>
 <script>
 {
 /* ---------- Edit these to make it yours ---------- */
@@ -307,7 +308,7 @@ $('shuffle').addEventListener('click', () => {
 });
 rotation();
 
-if (window.Deck) Deck.mountHand($('hand'));
+if (window.DeckUI) DeckUI.mountHand($('hand'));
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
