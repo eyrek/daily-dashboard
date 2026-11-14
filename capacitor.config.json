@@ -1,0 +1,14 @@
+{
+  "appId": "io.github.eyrek.dashboard",
+  "appName": "Dashboard",
+  "webDir": "app-shell",
+  "server": {
+    "url": "https://eyrek.github.io/daily-dashboard/",
+    "errorPath": "index.html",
+    "allowNavigation": ["eyrek.github.io"]
+  },
+  "android": { "backgroundColor": "#0e1017" },
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_stat_deck", "iconColor": "#ff5a36" }
+  }
+}
