@@ -99,7 +99,21 @@
       for (const ch of o.chores) { ch.id = ch.id || uid(); ch.days = ch.days || []; }
       for (const f of o.fires) { f.id = f.id || uid(); f.week = f.week || weekOf(addDays(f.date, 1)); f.ratings = f.ratings || {}; }
       if (typeof o.rev !== 'number') o.rev = 0;
+      applyPatches(o);
       return o;
+    }
+    /* Local schedules Erich supplied (Teaneck 2026 recycling calendar, Zone 6). Applied once per deck; edits stick. */
+    const TEANECK_Z6_RECYCLING = ['2026-01-06', '2026-01-21', '2026-02-03', '2026-02-18', '2026-03-03', '2026-03-17', '2026-03-31', '2026-04-14', '2026-04-28',
+      '2026-05-12', '2026-05-27', '2026-06-09', '2026-06-23', '2026-07-07', '2026-07-21', '2026-08-04', '2026-08-18', '2026-09-01', '2026-09-15', '2026-09-29',
+      '2026-10-14', '2026-10-27', '2026-11-10', '2026-11-24', '2026-12-08', '2026-12-22', '2027-01-05', '2027-01-20'];
+    function applyPatches(o) {
+      o.settings.patches = o.settings.patches || [];
+      if (!o.settings.patches.includes('teaneck-z6-2026')) {
+        const rc = o.chores.find(c => c.id === 'recycle');
+        if (rc && !rc.anchor) Object.assign(rc, { kind: 'dates-eve', dates: TEANECK_Z6_RECYCLING.slice(), source: 'Teaneck 2026 calendar, Zone 6' });
+        if (!o.chores.some(c => c.id === 'xmastree')) o.chores.push({ id: 'xmastree', name: 'Christmas tree to the curb', kind: 'dates-eve', dates: ['2027-01-06', '2027-01-21'], source: 'Teaneck 2026 calendar, Zone 6' });
+        o.settings.patches.push('teaneck-z6-2026');
+      }
     }
     const MIGRATE = {
       1(o) {
@@ -320,6 +334,7 @@
         }
         if (c.kind === 'eve-before' && (c.days || []).includes(dow(tomorrow))) out.push({ id: c.id, name: c.name, eve: true });
         if (c.kind === 'biweekly-eve' && c.anchor && ((diff(tomorrow, c.anchor) % 14) + 14) % 14 === 0) out.push({ id: c.id, name: c.name, eve: true });
+        if (c.kind === 'dates-eve' && (c.dates || []).includes(tomorrow)) out.push({ id: c.id, name: c.name, eve: true });
       }
       return out;
     }

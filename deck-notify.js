@@ -48,6 +48,8 @@
       if (R.trash.on && (tr.days || []).includes(D.dow(tomorrow)) && !D.choreDoneOn('trash', d)) add('trash', R.trash.time, 'Trash night', 'Trash out tonight. Pickup is tomorrow.', './');
       const rc = chore('recycle');
       if (R.recycle.on && rc.anchor && ((D.diff(tomorrow, rc.anchor) % 14) + 14) % 14 === 0 && !D.choreDoneOn('recycle', d)) add('recycle', R.recycle.time, 'Recycling night', 'Recycling out tonight. Pickup is tomorrow.', './');
+      for (const c of D.S.chores.filter(x => x.kind === 'dates-eve' && (x.dates || []).includes(tomorrow)))
+        if (R.recycle.on && !D.choreDoneOn(c.id, d)) add(c.id, R.recycle.time, c.name.replace(/ out$/, '') + ' night', c.name + ' tonight. Pickup is tomorrow.', './');
       if (R.campfire.on && D.dow(d) === 0 && !D.currentFire(d)) add('campfire', R.campfire.time, 'Campfire', '10 minutes to review the week and rate your habits.', './#campfire');
     }
     return out.sort((a, b) => a.at - b.at);

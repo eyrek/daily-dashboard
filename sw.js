@@ -1,6 +1,6 @@
 // Service worker: same-origin files only. Network first with a short timeout (fresh code when online,
 // instant fallback on weak signal), cached copy when offline. Other sites (weather, news, fonts) are left alone.
-const C = 'deck-v10';
+const C = 'deck-v11';
 const SHELL = ['./', 'index.html', 'dashboard/', 'dashboard/index.html', 'dashboard/manifest.json', 'dashboard/icon-192.png', 'deck-core.js', 'deck-ui.js', 'deck.css', 'deck-push.js', 'deck-notify.js', 'deck-calendar.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'badge-96.png'];
 
 self.addEventListener('install', e => {

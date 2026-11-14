@@ -354,7 +354,7 @@ function settings() {
     <div class="set"><h3>Day starts at</h3><p class="hint">Anything you tick before this hour counts for the previous day, so a late evening routine lands on the right day.</p>
       <select name="dayStart" aria-label="Day starts at">${[0, 1, 2, 3, 4, 5, 6].map(h => `<option value="${h}"${h === st.dayStart ? ' selected' : ''}>${h === 0 ? 'Midnight' : h + ':00 am'}</option>`).join('')}</select></div>
     <div class="set"><h3>Trash pickup days</h3><p class="hint">The chore shows up the evening before each one.</p>${dayBoxes('trash', ch('trash').days)}</div>
-    <div class="set"><h3>Recycling</h3><label class="f">Any one pickup date (every other week is worked out from it)<input type="date" name="recycle" value="${esc(ch('recycle').anchor || '')}"></label></div>
+    <div class="set"><h3>Recycling</h3>${ch('recycle').kind === 'dates-eve' ? (() => { const nx = (ch('recycle').dates || []).filter(x => x >= k); return `<p class="hint">Following the ${esc(ch('recycle').source || 'pickup calendar')}. ${nx.length ? `Next pickups: ${nx.slice(0, 3).map(x => esc(D.parse(x).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }))).join(', ')}.` : 'No more dates loaded. Send Claude next year\u2019s calendar.'} The reminder comes the evening before.</p><input type="hidden" name="recycle" value="">`; })() : `<label class="f">Any one pickup date (every other week is worked out from it)<input type="date" name="recycle" value="${esc(ch('recycle').anchor || '')}"></label>`}</div>
     <div class="set"><h3>Weekly chores</h3><div class="grid2"><label class="f">Mowing day (Apr–Nov)${daySel('mow', (ch('mow').days || [6])[0])}</label><label class="f">Hair trim day${daySel('hair', (ch('hair').days || [0])[0])}</label></div><p class="hint">Missed it? It stays on your hand until it's done.</p></div>
     <div class="set"><h3>Workout rotation</h3><label class="f">Sessions in order, comma-separated<input name="cycle" value="${esc(W.cycle.join(', '))}"></label>
       <label class="f">Today's session<select name="start">${W.cycle.map(x => `<option${x === D.sessionFor(k) ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select></label>
@@ -471,7 +471,7 @@ document.addEventListener('submit', e => {
     if (!c.length) return U.toast('Add at least one workout session.');
     D.setSettings({ dayStart: +f.dayStart.value });
     D.setChore('trash', { days: [...f.querySelectorAll('input[name=trash]:checked')].map(i => +i.value) });
-    D.setChore('recycle', { anchor: f.recycle.value });
+    if (D.S.chores.find(c => c.id === 'recycle').kind !== 'dates-eve') D.setChore('recycle', { anchor: f.recycle.value });
     D.setChore('mow', { days: [+f.mow.value] }); D.setChore('hair', { days: [+f.hair.value] });
     const pick = f.start.value, changed = pick !== D.sessionFor(D.today());
     U.act(D.setWorkout(Object.keys(D.S.workout.log).length ? { cycle: c } : { cycle: c, start: c.includes(pick) ? pick : c[0] }));

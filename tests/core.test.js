@@ -216,3 +216,13 @@ test('workout can be logged as the session the calendar says, and the rotation f
   day(D, '2026-11-17'); assert.equal(D.sessionFor(D.today()), 'Pull');
   D.logWorkout('done', D.today(), 'NotASession'); assert.equal(D.S.workout.log[D.today()].s, 'Pull');
 });
+
+test('Teaneck Zone 6 recycling dates: evening before each pickup, holiday shifts respected', () => {
+  const { D } = make('2026-11-23T12:00');
+  assert.equal(D.S.chores.find(c => c.id === 'recycle').kind, 'dates-eve');
+  assert.ok(D.choresDue().some(c => c.id === 'recycle'), 'Mon Nov 23: out tonight for Tue Nov 24');
+  day(D, '2026-11-24'); assert.ok(!D.choresDue().some(c => c.id === 'recycle'));
+  day(D, '2027-01-19'); assert.ok(D.choresDue().some(c => c.id === 'recycle'), 'Tue Jan 19: out for Wed Jan 20 (MLK shift)');
+  day(D, '2027-01-05'); assert.ok(D.choresDue().some(c => c.id === 'xmastree'));
+  D.setChore('recycle', { dates: [] }); D.load(); assert.deepEqual(D.S.chores.find(c => c.id === 'recycle').dates, [], 'patch applies once; edits stick');
+});
