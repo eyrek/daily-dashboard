@@ -39,6 +39,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Google Calendar (synced to the phone): show today's events, read the workout schedule, add tasks as events -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Exact reminder times. USE_EXACT_ALARM is granted automatically on Android 13+ for this sideloaded app;
          SCHEDULE_EXACT_ALARM covers Android 12. -->
