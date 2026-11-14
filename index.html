@@ -304,7 +304,7 @@ function scale(name, val, label) {
 function campfire() {
   const k = D.today(), cur = D.currentFire(k), last = S().fires.slice().sort((a, b) => (a.date < b.date ? 1 : -1))[0];
   $('firesub').textContent = (cur ? `This week's campfire is done (${nice(cur.date)}). You can still edit it.` : last ? `Last campfire: ${nice(last.date)}.` : 'Your first campfire.') + ' Best on Sunday evening or Monday. Ten minutes.';
-  $('votes').innerHTML = votes() + (window.DeckCal && DeckCal.native ? `<h3 style="font-size:15px;margin:14px 0 6px">Next week on your calendar</h3>${DeckCal.weekHTML()}` : '');
+  $('votes').innerHTML = votes() + (window.DeckCal && DeckCal.available ? `<h3 style="font-size:15px;margin:14px 0 6px">Next week on your calendar</h3>${DeckCal.weekHTML()}` : '');
   $('grads').innerHTML = D.candidates(k).map(g => `<form class="grad" data-grad="${g.cid}|${g.lid}"><h3>◆ Ready to graduate? ${esc(g.name)}</h3><p class="hint">In training 4+ weeks, rated 6+ at the last two campfires, strength ${Math.round(g.strength * 100)}%. Four quick questions (1 = disagree, 7 = agree). "${esc(g.name)}…"</p>${D.SRBAI.map((q, i) => scale('q' + i, null, '…' + q)).join('')}<div class="row"><button class="sm pri" type="submit">Check</button></div></form>`).join('');
   const training = []; D.trainingCards(k).forEach(c => D.linksAt(c, k, 'training').forEach(l => training.push({ c, l })));
   const relics = S().relics.filter(r => !r.purged);
@@ -379,9 +379,9 @@ function settings() {
 }
 async function calBox() {
   const box = $('calbox'); if (!box) return;
-  if (!(window.DeckCal && DeckCal.native)) { box.innerHTML = '<h3>Calendar</h3><p class="hint">Your Google Calendar shows up in the Android app, where it can read your phone\u2019s calendar. It isn\u2019t available in the browser.</p>'; return; }
-  const st = DeckCal.settings(), perm = await DeckCal.permission();
-  if (perm !== 'granted') { box.innerHTML = `<h3>Calendar</h3><p class="hint">Show today's events on your hand, take the workout session from your calendar, and put tasks on your calendar.</p><div class="row"><button type="button" class="sm pri" id="cal-on">Connect calendar</button></div>`; return; }
+  if (!(window.DeckCal && DeckCal.available)) { box.innerHTML = '<h3>Calendar</h3><p class="hint">Google Calendar in the browser isn\u2019t set up yet. It works in the Android app now.</p>'; return; }
+  const st = DeckCal.settings(), perm = await DeckCal.permission(), web = DeckCal.kind === 'google';
+  if (perm !== 'granted') { box.innerHTML = `<h3>Calendar</h3><p class="hint">Show today's events on your hand, take the workout session from your calendar, and put tasks on your calendar.${web ? ' In the browser, Google sign-ins last about an hour; then a one-tap Refresh appears on Today.' : ''}</p><div class="row"><button type="button" class="sm pri" id="cal-on">${perm === 'expired' ? 'Refresh calendar' : web ? 'Sign in with Google' : 'Connect calendar'}</button></div>`; return; }
   const cals = await DeckCal.listCalendars(), hidden = new Set(st.hidden.map(String));
   box.innerHTML = `<h3>Calendar</h3>
     <label class="layer" style="border:0"><input type="checkbox" id="cal-show"${st.show ? ' checked' : ''}><span>Show today's calendar on my hand</span></label>
@@ -505,7 +505,7 @@ function render(v) {
   if (v === 'settings' && !busy($('sets'))) settings();
 }
 D.onChange(() => render());
-window.__deckCalChanged = () => { if (current() === 'campfire') $('votes').innerHTML = votes() + (DeckCal.native ? `<h3 style="font-size:15px;margin:14px 0 6px">Next week on your calendar</h3>${DeckCal.weekHTML()}` : ''); };
+window.__deckCalChanged = () => { if (current() === 'campfire') $('votes').innerHTML = votes() + (DeckCal.available ? `<h3 style="font-size:15px;margin:14px 0 6px">Next week on your calendar</h3>${DeckCal.weekHTML()}` : ''); };
 route();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
