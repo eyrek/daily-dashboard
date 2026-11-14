@@ -38,6 +38,9 @@ header h1{font-size:clamp(28px,4vw,44px);line-height:1.05;text-wrap:balance}
 .cond{font-size:22px;font-weight:600}
 .meta{opacity:.85;font-size:15px}
 #wxicon{width:clamp(110px,16vw,160px);height:auto;align-self:start;filter:drop-shadow(0 8px 16px rgba(0,0,0,.25))}
+.hours{grid-column:1/-1;display:flex;gap:2px;overflow-x:auto;margin:10px -6px 0;padding:0 0 6px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.4) transparent}
+.hr{flex:0 0 58px;text-align:center;font-size:13px;padding:6px 0;border-radius:12px;scroll-snap-align:start}
+.hr.now{background:rgba(255,255,255,.16)}.hr svg{width:34px;height:34px;display:block;margin:2px auto}.hr b{font-size:15px;font-weight:600}.hr i{display:block;font-style:normal;font-size:12px;color:#cfe0ff;min-height:16px}
 .days{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px;border-top:1px solid rgba(255,255,255,.25);padding-top:14px}
 .day{text-align:center;font-size:14px}.day svg{width:40px;height:40px;display:block;margin:2px auto}
 .day b{font-weight:600}.day span{opacity:.75}
@@ -78,6 +81,7 @@ h3{font-size:14px;font-weight:600;color:var(--mut);margin:0 0 6px}
     <section id="wx" class="card" aria-label="Weather">
       <div class="now"><div class="big" id="temp">--°</div><div class="cond" id="cond">Loading weather…</div><div class="meta" id="wxmeta"></div></div>
       <svg id="wxicon" viewBox="0 0 64 64" aria-hidden="true"></svg>
+      <div class="hours" id="hours" aria-label="Hourly forecast"></div>
       <div class="days" id="days"></div>
       <div class="place" id="wxplace"></div>
     </section>
@@ -214,10 +218,22 @@ function icon(kind, night) {
 function renderWx(d, t) {
   const c = d.current, dy = d.daily, [label, kind] = wmo(c.weather_code);
   $('temp').textContent = Math.round(c.temperature_2m) + '°';
-  $('cond').innerHTML = esc(label) + ' <span class="nw">· H ' + Math.round(dy.temperature_2m_max[0]) + '° L ' + Math.round(dy.temperature_2m_min[0]) + '°</span>';
+  $('cond').textContent = label;
   const hm = s => new Date(s).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  $('wxmeta').innerHTML = [`Feels like ${Math.round(c.apparent_temperature)}°`, `Wind ${Math.round(c.wind_speed_10m)} mph`, `Rain ${dy.precipitation_probability_max[0] ?? 0}%`, `Sunset ${hm(dy.sunset[0])}`].map(x => `<span class="nw">${x}</span>`).join(' · ');
+  $('wxmeta').innerHTML = [`H ${Math.round(dy.temperature_2m_max[0])}° L ${Math.round(dy.temperature_2m_min[0])}°`, `Feels like ${Math.round(c.apparent_temperature)}°`, `Wind ${Math.round(c.wind_speed_10m)} mph`, `Rain ${dy.precipitation_probability_max[0] ?? 0}%`, `Sunset ${hm(dy.sunset[0])}`].map(x => `<span class="nw">${x}</span>`).join(' · ');
   $('wxicon').innerHTML = icon(kind, !c.is_day);
+  const h = d.hourly;
+  if (h) {
+    const curHour = (c.time || '').slice(0, 13);
+    let i0 = h.time.findIndex(t => t.slice(0, 13) >= curHour); if (i0 < 0) i0 = 0;
+    const toMidnight = h.time.slice(i0).findIndex(t => t.slice(11, 13) === '00' && t.slice(0, 13) !== curHour);
+    const n = Math.max(8, toMidnight < 0 ? 12 : toMidnight);
+    $('hours').innerHTML = h.time.slice(i0, i0 + n).map((t, k) => {
+      const j = i0 + k, hr = +t.slice(11, 13), lbl = k === 0 ? 'Now' : (hr % 12 || 12) + (hr < 12 ? ' AM' : ' PM');
+      const p = h.precipitation_probability[j] ?? 0;
+      return `<div class="hr${k === 0 ? ' now' : ''}">${lbl}<svg viewBox="0 0 64 64" aria-hidden="true">${icon(wmo(h.weather_code[j])[1], !h.is_day[j])}</svg><b>${Math.round(h.temperature_2m[j])}°</b><i>${p >= 10 ? p + '%' : ''}</i></div>`;
+    }).join('');
+  }
   $('days').innerHTML = dy.time.slice(1, 6).map((s, i) => {
     const k = wmo(dy.weather_code[i + 1])[1], name = new Date(s + 'T12:00').toLocaleDateString(undefined, { weekday: 'short' });
     return `<div class="day"><b>${name}</b><svg viewBox="0 0 64 64" aria-hidden="true">${icon(k, false)}</svg><b>${Math.round(dy.temperature_2m_max[i + 1])}°</b> <span>${Math.round(dy.temperature_2m_min[i + 1])}°</span></div>`;
@@ -228,7 +244,7 @@ async function loadWx() {
   const cached = get('wx');
   if (cached) renderWx(cached.d, cached.t);
   try {
-    const u = `https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=${encodeURIComponent(CONFIG.tz)}&forecast_days=6`;
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=${encodeURIComponent(CONFIG.tz)}&forecast_days=6`;
     const r = await fetch(u); if (!r.ok) throw 0;
     const d = await r.json(); put('wx', { d, t: Date.now() }); renderWx(d, Date.now());
   } catch (e) { if (!cached) $('cond').textContent = 'Weather unavailable right now'; }
