@@ -226,3 +226,11 @@ test('Teaneck Zone 6 recycling dates: evening before each pickup, holiday shifts
   day(D, '2027-01-05'); assert.ok(D.choresDue().some(c => c.id === 'xmastree'));
   D.setChore('recycle', { dates: [] }); D.load(); assert.deepEqual(D.S.chores.find(c => c.id === 'recycle').dates, [], 'patch applies once; edits stick');
 });
+
+test('trash goes out Sunday and Wednesday nights', () => {
+  const { D } = make('2026-11-15T12:00'); // Sunday
+  assert.ok(D.choresDue().some(c => c.id === 'trash'));
+  day(D, '2026-11-16'); assert.ok(!D.choresDue().some(c => c.id === 'trash'));
+  day(D, '2026-11-18'); assert.ok(D.choresDue().some(c => c.id === 'trash'));
+  D.setChore('trash', { days: [2] }); D.load(); assert.deepEqual(D.S.chores.find(c => c.id === 'trash').days, [2], 'later edits stick');
+});

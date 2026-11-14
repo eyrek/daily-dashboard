@@ -114,6 +114,11 @@
         if (!o.chores.some(c => c.id === 'xmastree')) o.chores.push({ id: 'xmastree', name: 'Christmas tree to the curb', kind: 'dates-eve', dates: ['2027-01-06', '2027-01-21'], source: 'Teaneck 2026 calendar, Zone 6' });
         o.settings.patches.push('teaneck-z6-2026');
       }
+      if (!o.settings.patches.includes('trash-mon-thu')) {
+        const tr = o.chores.find(c => c.id === 'trash');
+        if (tr && !(tr.days || []).length) tr.days = [1, 4]; // pickup Monday + Thursday → out Sunday + Wednesday nights
+        o.settings.patches.push('trash-mon-thu');
+      }
     }
     const MIGRATE = {
       1(o) {
