@@ -1,7 +1,7 @@
 // Service worker: same-origin files only. Network first with a short timeout (fresh code when online,
 // instant fallback on weak signal), cached copy when offline. Other sites (weather, news, fonts) are left alone.
-const C = 'dash-v4';
-const SHELL = ['./', 'index.html', 'deck.html', 'deck-core.js', 'deck-ui.js', 'deck.css', 'manifest.json', 'icon-192.png', 'icon-512.png'];
+const C = 'dash-v5';
+const SHELL = ['./', 'index.html', 'deck.html', 'deck-core.js', 'deck-ui.js', 'deck.css', 'deck-push.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'badge-96.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -31,5 +31,24 @@ self.addEventListener('fetch', e => {
       if (req.mode === 'navigate') { const page = await cache.match(url.pathname.endsWith('deck.html') ? 'deck.html' : 'index.html'); if (page) return page; }
       return network; // nothing cached: wait for the network after all
     }
+  })());
+});
+
+/* ---------- notifications ---------- */
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'Dashboard', {
+    body: d.body || '', icon: 'icon-192.png', badge: 'badge-96.png', tag: d.tag || 'deck', renotify: true,
+    data: { url: d.url || './' }
+  }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || './', self.registration.scope).href;
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const w of wins) { try { await w.navigate(url); } catch (err) {} if ('focus' in w) return w.focus(); }
+    return self.clients.openWindow(url);
   })());
 });

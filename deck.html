@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0e1017">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1017" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <title>Your Deck</title>
@@ -152,6 +153,7 @@ legend{padding:0}
 </div>
 <script src="deck-core.js"></script>
 <script src="deck-ui.js"></script>
+<script src="deck-push.js"></script>
 <script>
 {
 const D = Deck, U = DeckUI, esc = D.esc, $ = id => document.getElementById(id);
@@ -357,6 +359,7 @@ function settings() {
       <p class="hint">The rotation moves on only when you log a workout or rest day. Skips don't advance it.</p></div>
     <div class="row"><button class="sm pri" type="submit">Save settings</button></div>
   </form>
+  <div class="set" id="pushbox"><h3>Notifications</h3><p class="hint">Checking this device…</p></div>
   <div class="set"><h3>Pause</h3><p class="hint">Sick, travelling, or a rough week: paused days don't count against any habit.</p>
     <form class="row" id="pausef"><label class="f">From<input type="date" name="from" value="${k}"></label><label class="f">To<input type="date" name="to" value="${k}"></label><button class="sm" type="submit" style="align-self:flex-end">Pause</button></form>
     <div class="list">${S().pauses.map(p => `<div class="item"><span>${esc(nice(p.from))} – ${esc(nice(p.to))}</span><button type="button" class="sm ghost" data-unpause="${p.id}">Remove</button></div>`).join('')}</div></div>
@@ -369,7 +372,41 @@ function settings() {
     <div class="row" style="margin-top:8px"><button type="button" class="sm" id="saveraw">Save raw data</button><button type="button" class="sm ghost" id="reset">Reset deck to the starting setup</button></div></details>
   <p class="hint" style="margin-top:12px">Deck data version ${D.VERSION}. Most changes can be undone from the message at the bottom of the screen.</p>`;
   rawLoaded = false;
+  pushBox();
 }
+const REPO = 'https://github.com/eyrek/daily-dashboard';
+let reminderList = null;
+async function pushBox() {
+  const box = $('pushbox'); if (!box || !window.DeckPush) return;
+  let st; try { st = await DeckPush.status(); } catch (e) { st = { supported: false }; }
+  if (!reminderList) { try { reminderList = (await (await fetch('reminders.json', { cache: 'no-cache' })).json()).reminders; } catch (e) { reminderList = []; } }
+  const to12 = t => { const [h, m] = t.split(':').map(Number); return `${(h % 12) || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`; };
+  const when = r => r.kind === 'daily' ? 'every day' : r.kind === 'weekly' ? (r.days || []).map(i => D.DAY_NAMES[i] + 's').join(', ') : r.kind === 'eve-before' ? 'evening before trash pickup' : 'evening before recycling pickup';
+  const list = reminderList.length ? `<ul class="hint" style="margin:4px 0 0;padding-left:18px">${reminderList.map(r => `<li>${r.on ? '' : '<s>'}<b>${esc(r.title)}</b>, ${esc(to12(r.time))}, ${esc(when(r))}${r.on ? '' : '</s> (off until set up)'}</li>`).join('')}</ul>` : '';
+  let body;
+  if (!st.supported) body = `<p class="hint">This browser can't receive notifications. On your phone, open the site in Chrome and use ⋮ → <b>Install app</b>, then come back here.</p>`;
+  else if (!st.subscribed || !st.code) body = `${st.installed ? '' : '<p class="banner">Install the app first (Chrome ⋮ → Install app) so notifications come from Dashboard, then turn them on from the installed app.</p>'}
+    <p class="hint">Reminders are sent by a scheduled job on your GitHub repo. They can arrive a few minutes late and don't know whether you've already done the thing, so they're kept few.</p>
+    <div class="row"><button type="button" class="sm pri" id="push-on">Turn on notifications</button></div>`;
+  else body = `<ol class="hint" style="padding-left:18px;margin:4px 0;display:flex;flex-direction:column;gap:6px">
+      <li>Copy this device's setup code: <button type="button" class="sm" id="push-copy">Copy setup code</button></li>
+      <li>Open <a href="${REPO}/settings/secrets/actions/new" target="_blank" rel="noopener">your repo's new secret page</a>. Name it <b>PUSH_CONFIG</b>, paste the code, and tap <b>Add secret</b>. (If PUSH_CONFIG already exists, edit it instead.)</li>
+      <li>Send a test: open <a href="${REPO}/actions/workflows/reminders.yml" target="_blank" rel="noopener">the reminders workflow</a>, tap <b>Run workflow</b>, then <b>Run workflow</b> again. A notification should arrive within a minute.</li></ol>
+    <textarea id="push-code" readonly aria-label="Setup code" style="min-height:60px;font:12px ui-monospace,Consolas,monospace">${esc(st.code)}</textarea>
+    <div class="row"><button type="button" class="sm" id="push-test">Test on this device</button><button type="button" class="sm ghost" id="push-off">Turn off on this device</button></div>
+    <p class="hint">The code contains this device's private signing key. Paste it only into the GitHub secret, not into chats or notes.</p>`;
+  box.innerHTML = `<h3>Notifications</h3>${body}<p class="hint" style="margin-top:8px">Scheduled reminders:</p>${list}<p class="hint">To change times or turn reminders on, ask Claude or edit <a href="${REPO}/blob/main/reminders.json" target="_blank" rel="noopener">reminders.json</a>.</p>`;
+}
+document.addEventListener('click', async e => {
+  const id = e.target.id; if (!id || !id.startsWith('push-')) return;
+  try {
+    if (id === 'push-on') { e.target.disabled = true; e.target.textContent = 'Turning on…'; await DeckPush.enable(); U.toast('Notifications are on for this device. Next: copy the setup code into GitHub.'); }
+    if (id === 'push-copy') { const c = $('push-code').value; try { await navigator.clipboard.writeText(c); U.toast('Setup code copied.'); } catch (x) { $('push-code').select(); U.toast('Select the code in the box and copy it.'); } }
+    if (id === 'push-test') { await DeckPush.testLocal(); }
+    if (id === 'push-off') { await DeckPush.disable(); U.toast('Notifications turned off on this device.'); }
+  } catch (err) { U.toast(err.message || 'Couldn\u2019t turn on notifications.'); }
+  pushBox();
+});
 document.addEventListener('submit', e => {
   const f = e.target;
   if (f.id === 'setf') {

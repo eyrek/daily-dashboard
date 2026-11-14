@@ -44,3 +44,17 @@ Files: `deck-core.js` (all logic, no DOM, tested), `deck-ui.js` (shared renderin
 
 ## Tests
 `node --test tests/core.test.js`
+
+## Notifications (Android)
+Reminders are Web Push notifications sent by `.github/workflows/reminders.yml` (GitHub Actions, free).
+1. Install the app on the phone (Chrome ⋮ → Install app), open Deck → Settings → Notifications → **Turn on notifications**.
+2. Copy the setup code and save it as the repo secret **PUSH_CONFIG** (Settings → Secrets and variables → Actions).
+   The code holds this device's private signing key, made on the device; it never goes into backups or save codes.
+3. Actions → reminders → **Run workflow** sends a test.
+
+Schedule lives in `reminders.json` (New York times). After editing it run `node scripts/gen-workflow.mjs`.
+Each reminder gets an EST and an EDT cron line; the sender only fires the one in effect, so daylight saving is handled.
+GitHub may run scheduled jobs a few minutes late. GitHub also pauses scheduled workflows in public repos after
+60 days without commits; it emails a warning, and any commit or a click on "Enable workflow" turns them back on.
+
+Tests: `node --test tests/core.test.js` and `node --test tests/push.test.mjs` (needs `npm i web-push` for the last one).

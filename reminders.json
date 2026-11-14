@@ -1,0 +1,14 @@
+{
+  "tz": "America/New_York",
+  "note": "Edit, then run `node scripts/gen-workflow.mjs` to rebuild .github/workflows/reminders.yml. Times are local (New York).",
+  "reminders": [
+    { "id": "shutdown", "on": true, "time": "20:25", "kind": "daily",
+      "title": "Evening Shutdown", "body": "After brushing teeth → phone on the charger outside the bedroom.", "url": "deck.html#today" },
+    { "id": "trash", "on": false, "time": "19:30", "kind": "eve-before", "pickupDays": [],
+      "title": "Trash night", "body": "Trash out tonight. Pickup is tomorrow.", "url": "./" },
+    { "id": "recycle", "on": false, "time": "19:35", "kind": "biweekly-eve", "pickupAnchor": "",
+      "title": "Recycling night", "body": "Recycling out tonight. Pickup is tomorrow.", "url": "./" },
+    { "id": "campfire", "on": true, "time": "18:57", "kind": "weekly", "days": [0],
+      "title": "Campfire", "body": "10 minutes to review the week and rate your habits.", "url": "deck.html#campfire" }
+  ]
+}
