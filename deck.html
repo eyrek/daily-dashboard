@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0e1017">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<title>Your Deck</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="deck.css">
+<style>
+/* VOICE: a calm run-summary screen: what you hold, what you've earned, what's next
+   IDEA: a deckbuilder between fights: hand, relic shelf, draw pile, curses, campfire
+   PICTURE: the relic shelf, five identity columns filling with earned habits
+   COLOUR and TYPE: same ink/white ground and signal orange as the dashboard; Space Grotesk + Inter
+   LAYOUT: one column of bands; shelf as a 5-up grid that stacks on phones */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0e1017);--card:light-dark(#f3f4f6,#171a24);--ink:light-dark(#12141c,#eef0f6);--mut:light-dark(#5b6070,#9aa0b2);--line:light-dark(#e2e4ea,#262a37);--acc:#ff5a36}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+a{color:inherit}
+h1,h2{font-family:"Space Grotesk",Inter,sans-serif;margin:0}
+h2{font-size:20px;margin-bottom:4px}
+.wrap{max-width:1100px;margin:0 auto;padding:clamp(16px,3vw,36px) max(4vw,14px) 64px;display:flex;flex-direction:column;gap:16px}
+header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+header.top h1{font-size:clamp(30px,4vw,44px);line-height:1.05}
+header.top a{color:var(--acc);font-weight:600;text-decoration:none}
+.card{background:var(--card);border-radius:20px;padding:20px}
+.sub{color:var(--mut);font-size:14px;margin:0 0 14px}
+button,.btn{font:600 14px Inter,sans-serif;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+input,select,textarea{font:16px Inter,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:44px}
+textarea{width:100%;min-height:90px;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.shelf{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.col{background:var(--bg);border-radius:14px;padding:12px;min-height:150px;display:flex;flex-direction:column;gap:8px}
+.col h3{margin:0;font:700 15px "Space Grotesk",Inter,sans-serif}
+.col .n{color:var(--mut);font-weight:500;font-size:13px}
+.relic{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.35}
+.gem{flex:none;width:26px;height:26px;margin-top:1px;border-radius:8px;transform:rotate(45deg) scale(.78);background:linear-gradient(135deg,#ffd27a,var(--acc));box-shadow:inset -3px -3px 0 rgba(0,0,0,.15),inset 2px 2px 0 rgba(255,255,255,.45)}
+.relic.combo .gem{background:linear-gradient(135deg,#9fc0ff,#2b63ff)}
+.relic small{display:block;color:var(--mut);font-size:12px}
+.hollow{color:var(--mut);font-size:13px;border:1px dashed var(--line);border-radius:10px;padding:10px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{background:var(--bg);border-radius:14px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.item b{font-weight:600}.item .meta{color:var(--mut);font-size:13px;display:block}
+.tag{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--card);color:var(--mut);white-space:nowrap}
+.msg{font-size:14px;color:var(--acc);font-weight:600;min-height:20px;margin:8px 0 0}
+details{margin-top:10px}summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px;margin-top:6px}
+.curse{background:var(--bg);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.curse h3{margin:0;font:700 17px "Space Grotesk",Inter,sans-serif}
+.track{height:8px;border-radius:99px;background:var(--line);position:relative;overflow:hidden}
+.track i{position:absolute;inset:0 auto 0 0;background:var(--acc);border-radius:99px}
+.track b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);left:calc(100% * 21 / 30)}
+.layer{display:flex;align-items:center;gap:10px;min-height:44px;border-top:1px solid var(--line);font-size:15px;cursor:pointer}
+.layer input{width:22px;height:22px;accent-color:var(--acc);margin:0;flex:none}.layer span{flex:1}.layer small{color:var(--mut)}
+.slips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.slips button{min-height:38px;font-size:13px}
+.step{border-top:1px solid var(--line);padding:14px 0}
+.step:first-of-type{border-top:0;padding-top:4px}
+.step h3{margin:0 0 8px;font:700 16px "Space Grotesk",Inter,sans-serif}
+.rate{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:6px 0}
+.rate .lbl{flex:1 1 220px;font-size:15px}
+.scale{display:flex;gap:4px}
+.scale label{position:relative}
+.scale input{position:absolute;opacity:0;inset:0}
+.scale span{display:grid;place-items:center;width:38px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-weight:600;font-size:14px;cursor:pointer}
+.scale input:checked+span{background:var(--acc);border-color:var(--acc);color:#fff}
+.scale input:focus-visible+span{outline:3px solid var(--acc);outline-offset:2px}
+.hint{font-size:13px;color:var(--mut);margin:0 0 8px}
+.yn{display:flex;gap:6px}
+.days{display:flex;flex-wrap:wrap;gap:6px}
+.days label{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font-size:14px;cursor:pointer}
+.days input{accent-color:var(--acc);width:18px;height:18px;margin:0}
+.set{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-top:1px solid var(--line)}
+.set:first-of-type{border-top:0}
+.set > span{font-weight:600;font-size:14px}
+@media(max-width:860px){.shelf{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.shelf{grid-template-columns:minmax(0,1fr)}.col{min-height:0}.scale span{width:34px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><h1>Your deck</h1><a href="./">‹ Dashboard</a></header>
+
+  <section class="card" aria-label="Today's hand">
+    <h2>Today's hand</h2><p class="sub">3 energy for tasks. Habit cards are trained here until they turn into relics.</p>
+    <div id="hand"></div>
+  </section>
+
+  <section class="card" aria-label="Relics">
+    <h2>Relics</h2><p class="sub">Habits that run on their own now, grouped by who they make you. Orange gems are single habits, blue gems are whole combos.</p>
+    <div class="shelf" id="shelf"></div>
+  </section>
+
+  <section class="card" aria-label="Draw pile">
+    <h2>Draw pile</h2><p class="sub">Next habits to train. Draft one at the campfire when a slot opens (up to 3 cards in training).</p>
+    <div class="list" id="bench"></div>
+    <p class="msg" id="benchmsg" role="status"></p>
+    <details><summary>Add a card to the draw pile</summary>
+      <form class="form" id="addbench">
+        <input name="name" placeholder="Habit (e.g. Stretch hips)" required maxlength="60">
+        <select name="idn" aria-label="Identity"></select>
+        <input name="cue" placeholder="Cue: After … " maxlength="80">
+        <input name="min" placeholder="Minimum version" maxlength="60">
+        <select name="join" aria-label="Join a combo"><option value="">Stand-alone card</option></select>
+        <button class="pri" type="submit">Add to draw pile</button>
+      </form>
+    </details>
+  </section>
+
+  <section class="card" aria-label="Curses">
+    <h2>Curses</h2><p class="sub">Unplayable cards clogging your hand. Remove them with friction layers, not willpower. Expect week 1 to be the hardest; the mark is week 3.</p>
+    <div class="list" id="curses"></div>
+    <details><summary>Add a curse</summary>
+      <form class="row" id="addcurse"><input name="name" placeholder="e.g. Instagram Reels" required maxlength="40"><button type="submit">Add curse</button></form>
+    </details>
+  </section>
+
+  <section class="card" id="campfire" aria-label="Campfire">
+    <h2>🔥 Campfire</h2><p class="sub" id="firesub">Weekly review, Sunday evening or Monday. Ten minutes, five steps.</p>
+    <form id="fire"></form>
+    <p class="msg" id="firemsg" role="status"></p>
+  </section>
+
+  <section class="card" id="settings" aria-label="Settings">
+    <h2>Settings</h2><p class="sub">Schedules, workout rotation, and moving your deck between devices.</p>
+    <div id="sets"></div>
+  </section>
+</div>
+<script src="deck.js"></script>
+<script>
+{
+const D = Deck, esc = D.esc, $ = id => document.getElementById(id);
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const S = () => D.S;
+const nice = k => /^\d{4}-/.test(k) ? new Date(k + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : k;
+
+D.mountHand($('hand'));
+
+/* Relic shelf */
+function shelf() {
+  $('shelf').innerHTML = D.IDS.map(idn => {
+    const rs = S().relics.filter(r => r.idn === idn);
+    return `<div class="col"><h3>${idn} <span class="n">${rs.length || ''}</span></h3>${rs.map(r => `<div class="relic${r.combo ? ' combo' : ''}"><span class="gem" aria-hidden="true"></span><span>${esc(r.name)}<small>since ${esc(nice(r.on))}</small></span></div>`).join('') || '<div class="hollow">No relics yet.</div>'}</div>`;
+  }).join('');
+}
+
+/* Draw pile */
+function bench() {
+  const full = D.trainingCards().length >= 3;
+  $('bench').innerHTML = S().bench.map(b => `<div class="item"><span><b>${esc(b.name)}</b> <span class="tag">${esc(b.idn)}</span><span class="meta">${esc(b.cue || '')}${b.min ? ' · minimum: ' + esc(b.min) : ''}${b.join ? ' · joins ' + esc((S().cards.find(c => c.id === b.join) || {}).name || '') : ''}</span></span>
+    <span class="row"><button type="button" data-draft="${b.id}"${full && !b.join ? ' disabled title="Hand is full"' : ''}>Draft</button><button type="button" data-drop="${b.id}" aria-label="Remove ${esc(b.name)}">Remove</button></span></div>`).join('') || '<p class="hollow">Draw pile is empty.</p>';
+  const f = $('addbench');
+  f.idn.innerHTML = D.IDS.map(i => `<option>${i}</option>`).join('');
+  f.join.innerHTML = '<option value="">Stand-alone card</option>' + D.trainingCards().map(c => `<option value="${c.id}">Joins ${esc(c.name)}</option>`).join('');
+}
+$('bench').addEventListener('click', e => {
+  const d = e.target.closest('[data-draft]'), x = e.target.closest('[data-drop]');
+  if (d) { const m = D.draft(d.dataset.draft); $('benchmsg').textContent = m || 'Drafted. It\'s in your hand now.'; }
+  if (x) { S().bench = S().bench.filter(b => b.id !== x.dataset.drop); D.save(); }
+});
+$('addbench').addEventListener('submit', e => {
+  e.preventDefault(); const f = e.target;
+  S().bench.push({ id: D.uid(), name: f.name.value.trim(), idn: f.idn.value, cue: f.cue.value.trim(), min: f.min.value.trim(), join: f.join.value || undefined });
+  f.reset(); D.save();
+});
+
+/* Curses */
+const CTX = ['In bed', 'On the couch', 'Bathroom', 'Work break', 'Waiting / commute', 'Other'];
+function curses() {
+  const k = D.today();
+  $('curses').innerHTML = S().curses.map(c => {
+    const day = D.diff(k, c.since) + 1, wk = c.slips.filter(s => D.diff(k, s.date) < 7).length, mo = c.slips.filter(s => D.diff(k, s.date) < 28).length;
+    const tally = {}; c.slips.filter(s => D.diff(k, s.date) < 28).forEach(s => tally[s.ctx] = (tally[s.ctx] || 0) + 1);
+    const top = Object.keys(tally).sort((a, b) => tally[b] - tally[a])[0];
+    const on = c.layers.filter(l => l.on).length;
+    return `<div class="curse" data-c="${c.id}">
+      <div class="row" style="justify-content:space-between"><h3>${esc(c.name)}</h3><span class="tag">${on} of ${c.layers.length} friction layers</span></div>
+      <div><div class="track" role="img" aria-label="Day ${day} of the first 30, week-3 mark at day 21"><i style="width:${Math.min(day, 30) / 30 * 100}%"></i><b></b></div>
+      <p class="hint" style="margin:6px 0 0">Day ${day} since committing${day <= 7 ? '. Week 1 is usually the hardest' : day < 21 ? '. Week 3 mark at day 21' : '. Past the week-3 mark'}.</p></div>
+      <div>${c.layers.map(l => `<label class="layer"><input type="checkbox" data-layer="${l.id}"${l.on ? ' checked' : ''}><span>${esc(l.name)}</span>${l.on ? `<small>${esc(nice(l.on))}</small>` : ''}</label>`).join('')}</div>
+      <label class="hint" for="plan-${c.id}" style="margin:0">Replacement plan (one specific if → then)</label>
+      <textarea id="plan-${c.id}" data-plan>${esc(c.plan)}</textarea>
+      <div class="slips"><span class="hint" style="margin:0">Slipped? Log where:</span>${CTX.map(x => `<button type="button" data-slip="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+      <p class="hint" style="margin:0">Slips this week: ${wk} · last 4 weeks: ${mo}${top ? ` · most often: ${esc(top.toLowerCase())}. Aim the next friction layer there` : ''}.</p>
+      <div class="row"><button type="button" data-undo${c.slips.length ? '' : ' disabled'}>Undo last slip</button><button type="button" data-purge>Mark purged</button></div>
+    </div>`;
+  }).join('') || '<p class="hollow">No curses. Nice deck.</p>';
+}
+$('curses').addEventListener('change', e => {
+  const c = S().curses.find(x => x.id === e.target.closest('[data-c]').dataset.c);
+  if (e.target.dataset.layer) { const l = c.layers.find(x => x.id === e.target.dataset.layer); l.on = e.target.checked ? D.today() : ''; D.save(); }
+  if (e.target.hasAttribute('data-plan')) { c.plan = e.target.value; D.save(); }
+});
+$('curses').addEventListener('click', e => {
+  const box = e.target.closest('[data-c]'); if (!box) return;
+  const c = S().curses.find(x => x.id === box.dataset.c), b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.slip) { c.slips.push({ date: D.today(), ctx: b.dataset.slip }); D.save(); }
+  if (b.hasAttribute('data-undo')) { c.slips.pop(); D.save(); }
+  if (b.hasAttribute('data-purge')) {
+    S().relics.push({ id: D.uid(), card: '', name: `Purged: ${c.name}`, idn: 'Relaxed', on: D.today(), miss: 0, purged: true });
+    S().curses = S().curses.filter(x => x !== c); D.save();
+  }
+});
+$('addcurse').addEventListener('submit', e => {
+  e.preventDefault(); const n = e.target.name.value.trim(); if (!n) return;
+  S().curses.push({ id: D.uid(), name: n, since: D.today(), plan: 'If [where I usually slip] → then I [specific replacement].',
+    layers: [{ id: 'del', name: 'Delete or log out', on: '' }, { id: 'delay', name: 'Delay app in front of it', on: '' }, { id: 'gray', name: 'Grayscale in the evening', on: '' }, { id: 'limit', name: 'Daily limit set', on: '' }], slips: [] });
+  e.target.reset(); D.save();
+});
+
+/* Campfire */
+function fire() {
+  const k = D.today(), last = S().fires[S().fires.length - 1];
+  $('firesub').textContent = last ? `Last campfire: ${nice(last.date)}. Sunday evening or Monday works best. Ten minutes, five steps.` : 'Weekly review, Sunday evening or Monday. Ten minutes, five steps.';
+  const training = []; D.trainingCards().forEach(c => c.links.filter(l => l.state === 'training').forEach(l => training.push({ c, l })));
+  const ready = training.filter(({ c, l }) => D.eligible(c, l, k));
+  const relics = S().relics.filter(r => !r.purged);
+  const curseLayers = S().curses.flatMap(c => c.layers.filter(l => !l.on).map(l => ({ c, l })));
+  const scale = name => `<div class="scale">${[1, 2, 3, 4, 5, 6, 7].map(n => `<label><input type="radio" name="${name}" value="${n}" aria-label="${n}"><span>${n}</span></label>`).join('')}</div>`;
+  $('fire').innerHTML = `
+    <div class="step"><h3>1 · How automatic is each habit in training?</h3><p class="hint">1 = takes real effort · 7 = I do it without thinking. Three campfires in a row at 6+ (after 4 weeks) makes it a relic.</p>
+      ${training.map(({ c, l }) => `<div class="rate"><span class="lbl">${esc(l.name)} <span class="tag">${esc(c.name)}</span></span>${scale('r_' + l.id)}</div>`).join('') || '<p class="hint">Nothing in training.</p>'}
+      ${ready.length ? `<div class="row" style="margin-top:8px">${ready.map(({ c, l }) => `<button type="button" class="pri" data-grad="${c.id}|${l.id}">◆ Graduate “${esc(l.name)}”</button>`).join('')}</div>` : ''}</div>
+    <div class="step"><h3>2 · Are your relics still running?</h3><p class="hint">Two "no"s in a row cracks a relic back into training. That's normal, not failure.</p>
+      ${relics.map(r => `<div class="rate"><span class="lbl">${esc(r.name)}</span><span class="days"><label><input type="radio" name="k_${r.id}" value="1" checked> Yes</label><label><input type="radio" name="k_${r.id}" value="0"> No</label></span></div>`).join('') || '<p class="hint">No relics yet.</p>'}</div>
+    <div class="step"><h3>3 · Add one friction layer to a curse</h3>
+      ${curseLayers.length ? `<select name="layer" aria-label="Friction layer"><option value="">Skip this week</option>${curseLayers.map(({ c, l }) => `<option value="${c.id}|${l.id}">${esc(c.name)}: ${esc(l.name)}</option>`).join('')}</select>` : '<p class="hint">Every layer is applied. Consider marking the curse purged.</p>'}</div>
+    <div class="step"><h3>4 · Draft at most one card</h3>
+      <select name="draft" aria-label="Draft a card"><option value="">Not this week</option>${S().bench.map(b => `<option value="${b.id}">${esc(b.name)}${b.join ? ' (joins combo)' : ''}</option>`).join('')}</select>
+      <p class="hint" style="margin-top:6px">Only draft if this week's cards felt manageable. ${D.trainingCards().length >= 3 ? 'Hand is full, so only combo-joining cards can be drafted.' : ''}</p></div>
+    <div class="step"><h3>5 · One sentence about the week</h3><input name="note" style="width:100%" maxlength="200" placeholder="What went well, what got in the way"></div>
+    <button class="pri" type="submit">Close the campfire</button>`;
+}
+$('fire').addEventListener('click', e => {
+  const b = e.target.closest('[data-grad]'); if (!b) return;
+  const [c, l] = b.dataset.grad.split('|'); D.graduate(c, l); $('firemsg').textContent = 'New relic on your shelf.';
+});
+$('fire').addEventListener('submit', e => {
+  e.preventDefault(); const f = e.target, k = D.today(), ratings = {}, checks = {};
+  f.querySelectorAll('input[type=radio]:checked').forEach(i => {
+    if (i.name.startsWith('r_')) ratings[i.name.slice(2)] = +i.value;
+    if (i.name.startsWith('k_')) checks[i.name.slice(2)] = i.value === '1';
+  });
+  S().fires.push({ date: k, ratings, checks, note: f.note.value.trim() });
+  const cracked = [];
+  for (const [rid, ok] of Object.entries(checks)) {
+    const r = S().relics.find(x => x.id === rid); if (!r) continue;
+    r.miss = ok ? 0 : (r.miss || 0) + 1;
+    if (r.miss >= 2) cracked.push(rid);
+  }
+  cracked.forEach(id => D.crack(id));
+  if (f.layer && f.layer.value) { const [cid, lid] = f.layer.value.split('|'); const l = S().curses.find(c => c.id === cid).layers.find(x => x.id === lid); l.on = k; }
+  let m = '';
+  if (f.draft.value) m = D.draft(f.draft.value);
+  D.save();
+  fire();
+  $('firemsg').textContent = m || `Campfire closed${cracked.length ? `. ${cracked.length} relic${cracked.length > 1 ? 's' : ''} cracked back into training` : ''}. See you next week.`;
+});
+
+/* Settings */
+function sets() {
+  const c = id => S().chores.find(x => x.id === id), W = S().workout;
+  const dayBoxes = (name, sel) => `<div class="days">${DAYS.map((d, i) => `<label><input type="checkbox" name="${name}" value="${i}"${(sel || []).includes(i) ? ' checked' : ''}> ${d}</label>`).join('')}</div>`;
+  const daySel = (name, v) => `<select name="${name}">${DAYS.map((d, i) => `<option value="${i}"${i === v ? ' selected' : ''}>${d}</option>`).join('')}</select>`;
+  $('sets').innerHTML = `<form id="setf">
+    <div class="set"><span>Trash pickup days</span><span class="hint" style="margin:0">The card shows up the evening before each one.</span>${dayBoxes('trash', c('trash').days)}</div>
+    <div class="set"><span>Recycling: any one pickup date</span><span class="hint" style="margin:0">Every-other-week dates are worked out from this.</span><input type="date" name="recycle" value="${esc(c('recycle').anchor)}"></div>
+    <div class="set"><span>Mowing day (April–November)</span>${daySel('mow', (c('mow').days || [6])[0])}</div>
+    <div class="set"><span>Hair trim day</span>${daySel('hair', (c('hair').days || [0])[0])}</div>
+    <div class="set"><span>Next workout in your rotation</span><span class="hint" style="margin:0">${W.cycle.join(' → ')}</span><select name="next">${W.cycle.map((x, i) => `<option value="${i}"${i === W.next ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
+    <button class="pri" type="submit">Save settings</button>
+  </form>
+  <div class="set" style="margin-top:14px"><span>Move your deck to another device</span><span class="hint" style="margin:0">Copy the save code here, then paste it on the other device. Each device keeps its own copy until you do.</span>
+    <div class="row"><button type="button" id="copy">Copy save code</button></div>
+    <textarea id="code" placeholder="Paste a save code here"></textarea><div class="row"><button type="button" id="load">Load save code</button></div></div>
+  <details><summary>Advanced: edit raw deck data</summary><textarea id="raw" style="min-height:260px;font:13px/1.4 ui-monospace,Consolas,monospace"></textarea>
+    <div class="row" style="margin-top:8px"><button type="button" id="saveraw">Save raw data</button><button type="button" id="reset">Reset deck to the starting setup</button></div></details>
+  <p class="msg" id="setmsg" role="status"></p>`;
+  $('raw').value = JSON.stringify(S(), null, 2);
+}
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'setf') return; e.preventDefault(); const f = e.target, c = id => S().chores.find(x => x.id === id);
+  c('trash').days = [...f.querySelectorAll('input[name=trash]:checked')].map(i => +i.value);
+  c('recycle').anchor = f.recycle.value;
+  c('mow').days = [+f.mow.value]; c('hair').days = [+f.hair.value];
+  S().workout.next = +f.next.value; D.save(); $('setmsg').textContent = 'Saved.';
+});
+document.addEventListener('click', async e => {
+  const id = e.target.id;
+  if (id === 'copy') { try { await navigator.clipboard.writeText(D.exportCode()); $('setmsg').textContent = 'Save code copied. Paste it on your other device.'; } catch (x) { $('code').value = D.exportCode(); $('setmsg').textContent = 'Couldn\'t reach the clipboard. The code is in the box; copy it from there.'; } }
+  if (id === 'load') { try { D.importCode($('code').value); $('setmsg').textContent = 'Deck loaded.'; } catch (x) { $('setmsg').textContent = 'That code didn\'t work. Check it was copied in full.'; } }
+  if (id === 'saveraw') { try { D.replace(JSON.parse($('raw').value)); $('setmsg').textContent = 'Raw data saved.'; } catch (x) { $('setmsg').textContent = 'That isn\'t valid deck JSON. Nothing changed.'; } }
+  if (id === 'reset') {
+    if (e.target.dataset.armed) { D.replace(D.seed()); $('setmsg').textContent = 'Deck reset.'; }
+    else { e.target.dataset.armed = '1'; e.target.textContent = 'Tap again to erase everything'; }
+  }
+});
+
+function all() { shelf(); bench(); curses(); fire(); sets(); }
+window.addEventListener('deckchange', () => {
+  /* keep in-progress campfire answers: only redraw the campfire form when it isn't being filled in */
+  shelf(); bench(); curses();
+  if (!$('fire').contains(document.activeElement) && !$('fire').querySelector('input[name^="r_"]:checked')) fire();
+  if (!$('sets').contains(document.activeElement)) sets();
+});
+window.addEventListener('storage', e => { if (e.key === D.KEY) { D.load(); all(); } });
+all();
+if (location.hash) setTimeout(() => { const t = document.querySelector(location.hash); if (t) t.scrollIntoView(); }, 50);
+}
+</script>
+</body>
+</html>

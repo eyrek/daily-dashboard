@@ -10,6 +10,7 @@
 <title>Daily Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="deck.css">
 <style>
 /* VOICE: calm morning glance, quick to scan, a little bit of radio warmth
    IDEA: a bedside clock radio: sky panel up top, FM dial for the music card
@@ -31,6 +32,8 @@ header h1{font-size:clamp(28px,4vw,44px);line-height:1.05;text-wrap:balance}
 .card{background:var(--card);border-radius:20px;padding:20px}
 #wx{grid-column:span 7;background:linear-gradient(160deg,var(--sky1),var(--sky2));color:#fff;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 20px;min-height:300px}
 #fact{grid-column:span 5;display:flex;flex-direction:column}
+#today{grid-column:1/-1}
+.th{display:flex;justify-content:space-between;align-items:baseline;gap:12px}.th a{font-weight:600;font-size:14px;color:var(--acc);text-decoration:none;white-space:nowrap}
 #news{grid-column:span 7}
 #music{grid-column:span 5}
 .now{display:flex;flex-direction:column;gap:4px}
@@ -69,7 +72,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset
 .tracks .s{font-weight:600}.tracks .a{color:var(--mut);font-size:14px}
 .tracks .go{color:var(--acc);font-weight:700;white-space:nowrap}
 h3{font-size:14px;font-weight:600;color:var(--mut);margin:0 0 6px}
-@media(max-width:860px){#wx,#fact,#news,#music{grid-column:1/-1}#fact{order:3}#news{order:2}#music{order:4}}
+@media(max-width:860px){#wx,#fact,#news,#music{grid-column:1/-1}#today{order:1}#fact{order:3}#news{order:2}#music{order:4}}
 @media(max-width:480px){.days{gap:2px}.day{font-size:13px}.day svg{width:32px;height:32px}#wx{padding:18px}}
 @media(prefers-reduced-motion:reduce){#needle{transition:none}}
 </style>
@@ -90,6 +93,10 @@ h3{font-size:14px;font-weight:600;color:var(--mut);margin:0 0 6px}
       <p id="facttext"></p>
       <div class="row"><button id="prevfact" type="button">Previous</button><button id="nextfact" type="button">Another one</button></div>
     </section>
+    <section id="today" class="card" aria-label="Today's hand">
+      <div class="th"><h2>Today's hand</h2><a href="deck.html">Open deck ›</a></div>
+      <div id="hand"></div>
+    </section>
     <section id="news" class="card" aria-label="News">
       <h2>Headlines</h2>
       <div class="row tabs" id="tabs" role="tablist"></div>
@@ -106,6 +113,7 @@ h3{font-size:14px;font-weight:600;color:var(--mut);margin:0 0 6px}
     </section>
   </main>
 </div>
+<script src="deck.js"></script>
 <script>
 {
 /* ---------- Edit these to make it yours ---------- */
@@ -298,6 +306,8 @@ $('shuffle').addEventListener('click', () => {
   rotation();
 });
 rotation();
+
+if (window.Deck) Deck.mountHand($('hand'));
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
