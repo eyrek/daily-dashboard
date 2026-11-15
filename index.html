@@ -157,6 +157,7 @@ legend{padding:0}
 <script src="deck-notify.js"></script>
 <script src="deck-calendar.js"></script>
 <script src="deck-sync.js"></script>
+<script src="deck-widget.js"></script>
 <script>
 {
 const D = Deck, U = DeckUI, esc = D.esc, $ = id => document.getElementById(id);
@@ -411,6 +412,7 @@ if (window.DeckSync) {
   DeckSync.onState(st => { if (current() === 'settings' && !document.querySelector('#syncbox iframe, #sync-list .list')) syncBox(); if (st.status === 'ok' && /^(Updated|Merged)/.test(st.msg)) U.toast(st.msg + '.'); });
   DeckSync.start();
 }
+if (window.DeckWidget) DeckWidget.start();
 async function calBox() {
   const box = $('calbox'); if (!box) return;
   if (!(window.DeckCal && DeckCal.available)) { box.innerHTML = '<h3>Calendar</h3><p class="hint">Google Calendar in the browser isn\u2019t set up yet. It works in the Android app now.</p>'; return; }
@@ -449,7 +451,8 @@ async function nativeBox(box) {
     <div class="list" style="margin-top:6px">${rows}</div>
     <p class="hint">The evening cue only fires while an evening routine is in training and not yet played that day. Trash and recycling follow the pickup days above. Campfire skips weeks you've already done it.</p>
     ${perm === 'granted' ? '<div class="row"><button type="button" class="sm" id="nat-test">Send a test in 5 seconds</button></div>' : ''}
-    ${N.lastError ? `<p class="hint">Last scheduling error: ${esc(N.lastError)}</p>` : ''}`;
+    ${N.lastError ? `<p class="hint">Last scheduling error: ${esc(N.lastError)}</p>` : ''}
+    <h3 style="margin-top:16px">Home-screen widget</h3><p class="hint">Long-press your home screen, tap Widgets, find Deck and drag "today's hand" out. Tap any row on it to tick it; ticks land in the app the next time it opens.</p>`;
 }
 async function pushBox() {
   const box = $('pushbox'); if (!box) return;

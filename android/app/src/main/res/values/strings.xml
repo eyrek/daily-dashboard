@@ -4,4 +4,6 @@
     <string name="title_activity_main">Deck</string>
     <string name="package_name">io.github.eyrek.dashboard</string>
     <string name="custom_url_scheme">io.github.eyrek.dashboard</string>
+    <string name="widget_description">Today\'s hand: tasks, routine steps, chores and your workout. Tap to tick.</string>
+    <string name="widget_label">Deck: today\'s hand</string>
 </resources>
