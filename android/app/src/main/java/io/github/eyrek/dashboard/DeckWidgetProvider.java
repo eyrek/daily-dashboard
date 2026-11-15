@@ -62,7 +62,16 @@ public class DeckWidgetProvider extends AppWidgetProvider {
         if (snap == null) sub = "Open Deck once to deal your hand";
         else if (stale) sub = "New day. Tap to deal today's hand";
         else {
-            int total = snap.optInt("total", 0), done = snap.optInt("doneCount", 0);
+            int total = 0, done = 0;
+            org.json.JSONArray items = snap.optJSONArray("items");
+            if (items != null) {
+                for (int i = 0; i < items.length(); i++) {
+                    JSONObject it = items.optJSONObject(i);
+                    if (it == null || "h".equals(it.optString("k"))) continue;
+                    total++;
+                    if (it.optBoolean("done")) done++;
+                }
+            }
             sub = total == 0 ? "Nothing on your hand" : done >= total ? "All played. Nice." : done + " of " + total + " played";
         }
         v.setTextViewText(R.id.widget_sub, sub);
