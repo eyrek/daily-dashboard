@@ -593,6 +593,18 @@
     }
     const replaceRaw = text => { let o; try { o = JSON.parse(text); } catch (e) { return { ok: false, msg: 'That isn’t valid JSON. Nothing changed.' }; } if (!o || o.v !== VERSION) return { ok: false, msg: 'Missing "v": ' + VERSION + '. Nothing changed.' }; return commit('Raw edit', () => { const keep = S.rev; S = normalize(o); S.rev = keep; }); };
     const resetAll = () => commit('Reset', () => { const keep = S.rev; S = seed(); S.rev = keep; });
+    /* sync: a stable fingerprint of the deck (ignores the local save counter) and a way to take a remote copy */
+    function fingerprint(o = S) {
+      const t = JSON.stringify(Object.assign({}, o, { rev: 0 }));
+      let h = 0x811c9dc5; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+      return (h >>> 0).toString(36) + '.' + t.length;
+    }
+    function adopt(o) {
+      if (readOnly || !o || typeof o.v !== 'number') return false;
+      if (o.v > VERSION) { readOnly = true; notice = 'A newer version of this app saved your deck. Reload to update.'; emit(); return false; }
+      o = clone(o); while (o.v < VERSION) o = MIGRATE[o.v](o);
+      const keep = S.rev; S = normalize(o); S.rev = keep; undoSlot = null; persist(); emit(); return true;
+    }
 
     const api = {
       VERSION, KEY, IDS, SRBAI, DAY_NAMES,
@@ -609,7 +621,7 @@
       draft, shelve, addBench, removeBench, updateCard, updateLink, moveLink, addLink, removeLink, newCard,
       toggleLayer, setPlan, logSlip, undoSlip, addCurse, purgeCurse,
       setSettings, setChore, setWorkout, addPause, removePause,
-      exportJSON, exportCode, importData, mergeInto, replaceRaw, resetAll, snapshots, restoreSnapshot
+      exportJSON, exportCode, importData, mergeInto, replaceRaw, resetAll, snapshots, restoreSnapshot, fingerprint, adopt, syncFromStorage
     };
     return api;
   }

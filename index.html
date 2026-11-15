@@ -156,6 +156,7 @@ legend{padding:0}
 <script src="deck-push.js"></script>
 <script src="deck-notify.js"></script>
 <script src="deck-calendar.js"></script>
+<script src="deck-sync.js"></script>
 <script>
 {
 const D = Deck, U = DeckUI, esc = D.esc, $ = id => document.getElementById(id);
@@ -361,12 +362,13 @@ function settings() {
       <p class="hint">The rotation moves on only when you log a workout or rest day. Skips don't advance it.</p></div>
     <div class="row"><button class="sm pri" type="submit">Save settings</button></div>
   </form>
+  <div class="set" id="syncbox"></div>
   <div class="set" id="calbox"></div>
   <div class="set" id="pushbox"><h3>Notifications</h3><p class="hint">Checking this device…</p></div>
   <div class="set"><h3>Pause</h3><p class="hint">Sick, travelling, or a rough week: paused days don't count against any habit.</p>
     <form class="row" id="pausef"><label class="f">From<input type="date" name="from" value="${k}"></label><label class="f">To<input type="date" name="to" value="${k}"></label><button class="sm" type="submit" style="align-self:flex-end">Pause</button></form>
     <div class="list">${S().pauses.map(p => `<div class="item"><span>${esc(nice(p.from))} – ${esc(nice(p.to))}</span><button type="button" class="sm ghost" data-unpause="${p.id}">Remove</button></div>`).join('')}</div></div>
-  <div class="set"><h3>Backup and moving between devices</h3><p class="hint">Your deck lives in this browser. Download a backup now and then. To bring your phone and PC together, copy the save code on one and merge it on the other; ticks from both sides are kept.</p>
+  <div class="set"><h3>Backup files and save codes</h3><p class="hint">With sync on you don't need these, but a downloaded backup never hurts. A save code moves a deck by hand: copy it on one device and merge it on the other; ticks from both sides are kept.</p>
     <div class="row"><button type="button" class="sm pri" id="dl">Download backup</button><button type="button" class="sm" id="copy">Copy save code</button><label class="sm" style="cursor:pointer">Import backup file<input type="file" id="file" accept=".json,application/json" hidden></label></div>
     <textarea id="code" placeholder="Paste a save code here" aria-label="Save code"></textarea>
     <div class="row"><button type="button" class="sm" id="merge">Merge into this device</button><button type="button" class="sm ghost" id="replace">Replace this device's deck</button></div>
@@ -375,7 +377,39 @@ function settings() {
     <div class="row" style="margin-top:8px"><button type="button" class="sm" id="saveraw">Save raw data</button><button type="button" class="sm ghost" id="reset">Reset deck to the starting setup</button></div></details>
   <p class="hint" style="margin-top:12px">News, weather and music live in the separate <a href="dashboard/">Dashboard app</a>. Deck data version ${D.VERSION}. Most changes can be undone from the message at the bottom of the screen.</p>`;
   rawLoaded = false;
-  pushBox(); calBox();
+  pushBox(); calBox(); syncBox();
+}
+/* ---------- cloud sync ---------- */
+function syncBox() {
+  const box = $('syncbox'); if (!box || !window.DeckSync) return;
+  const Y = DeckSync, st = Y.state;
+  if (!Y.signedIn) {
+    box.innerHTML = `<h3>Sync</h3><p class="hint">Sign in to keep this deck in step between your PC and phone, with the last 30 versions saved online. Reinstall or switch devices and sign in again to get everything back. If this device and your account both have a deck, they're merged; nothing is thrown away.</p>${st.msg ? `<p class="hint">${esc(st.msg)}</p>` : ''}<div id="sync-btn" style="min-height:44px"></div>`;
+    Y.renderButton($('sync-btn'), err => { if (err) U.toast(err.message || 'Sign-in didn’t finish.'); else U.toast('Signed in. Your deck is syncing.'); syncBox(); }).catch(err => { $('sync-btn').innerHTML = `<p class="hint">${esc(err.message)}</p>`; });
+    return;
+  }
+  const when = st.at ? new Date(st.at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+  const line = { ok: `Up to date${when ? ' as of ' + when : ''}.`, syncing: 'Syncing…', offline: st.msg, error: 'Couldn’t sync: ' + st.msg, off: st.msg || 'Not syncing.' }[st.status] || '';
+  box.innerHTML = `<h3>Sync</h3><p class="hint">Signed in as <b>${esc(Y.email)}</b>. ${esc(line)}${st.status === 'ok' && st.msg ? ' ' + esc(st.msg) + '.' : ''}</p>
+    <div class="row"><button type="button" class="sm" id="sync-now">Sync now</button><button type="button" class="sm ghost" id="sync-hist">Saved versions</button><button type="button" class="sm ghost" id="sync-out">Sign out</button></div><div id="sync-list"></div>`;
+}
+document.addEventListener('click', async e => {
+  const id = e.target.id, Y = window.DeckSync; if (!Y) return;
+  if (id === 'sync-now') { await Y.sync('button'); syncBox(); }
+  if (id === 'sync-out') { await Y.signOut(); U.toast('Signed out. This device keeps its copy of the deck.'); syncBox(); }
+  if (id === 'sync-hist') {
+    const el = $('sync-list'); el.innerHTML = '<p class="hint">Loading…</p>';
+    try { const rows = await Y.history(); el.innerHTML = rows.length ? `<div class="list">${rows.map(r => `<div class="item"><span>${esc(new Date(r.saved_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))} · ${esc(r.device || '')}</span><button type="button" class="sm ghost" data-synrest="${r.id}">Restore</button></div>`).join('')}</div>` : '<p class="hint">No saved versions yet.</p>'; }
+    catch (err) { el.innerHTML = `<p class="hint">${esc(err.message)}</p>`; }
+  }
+  if (e.target.dataset && e.target.dataset.synrest) {
+    if (!confirm('Replace your deck with this saved version? It will sync to your other devices. You can undo by restoring a newer version.')) return;
+    try { await Y.restore(e.target.dataset.synrest); U.toast('Restored.'); } catch (err) { U.toast(err.message); }
+  }
+});
+if (window.DeckSync) {
+  DeckSync.onState(st => { if (current() === 'settings' && !document.querySelector('#syncbox iframe, #sync-list .list')) syncBox(); if (st.status === 'ok' && /^(Updated|Merged)/.test(st.msg)) U.toast(st.msg + '.'); });
+  DeckSync.start();
 }
 async function calBox() {
   const box = $('calbox'); if (!box) return;

@@ -5,10 +5,26 @@
   "server": {
     "url": "https://eyrek.github.io/daily-dashboard/",
     "errorPath": "index.html",
-    "allowNavigation": ["eyrek.github.io"]
+    "allowNavigation": [
+      "eyrek.github.io"
+    ]
   },
-  "android": { "backgroundColor": "#0e1017" },
+  "android": {
+    "backgroundColor": "#0e1017"
+  },
   "plugins": {
-    "LocalNotifications": { "smallIcon": "ic_stat_deck", "iconColor": "#ff5a36" }
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_deck",
+      "iconColor": "#ff5a36"
+    },
+    "SocialLogin": {
+      "providers": {
+        "google": true,
+        "facebook": false,
+        "apple": false,
+        "twitter": false
+      },
+      "logLevel": 1
+    }
   }
 }

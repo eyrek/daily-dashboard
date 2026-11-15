@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Personal dashboard + habit deck. Web app on GitHub Pages; Android shell via Capacitor.",
   "scripts": {
-    "test": "node --test tests/core.test.js && node --test tests/push.test.mjs",
+    "test": "node --test tests/core.test.js tests/sync.test.js && node --test tests/push.test.mjs",
     "gen:workflow": "node scripts/gen-workflow.mjs",
     "android:sync": "cap sync android"
   },
@@ -12,6 +12,7 @@
     "@capacitor/android": "8.6.2",
     "@capacitor/core": "8.6.2",
     "@capacitor/local-notifications": "8.3.1",
+    "@capgo/capacitor-social-login": "8.7.11",
     "@ebarooni/capacitor-calendar": "8.10.0"
   },
   "devDependencies": {
