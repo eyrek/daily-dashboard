@@ -25,7 +25,9 @@ public class DeckWidgetProvider extends AppWidgetProvider {
     static void refreshAll(Context c) {
         AppWidgetManager m = AppWidgetManager.getInstance(c);
         int[] ids = m.getAppWidgetIds(new ComponentName(c, DeckWidgetProvider.class));
-        for (int id : ids) m.updateAppWidget(id, build(c, id));
+        // Launchers often keep the old header when a widget with a list gets a full update,
+        // so refresh the texts with a partial update and the rows through the list adapter.
+        for (int id : ids) m.partiallyUpdateAppWidget(id, texts(c, new RemoteViews(c.getPackageName(), R.layout.deck_widget)));
         m.notifyAppWidgetViewDataChanged(ids, R.id.widget_list);
     }
 
@@ -52,7 +54,33 @@ public class DeckWidgetProvider extends AppWidgetProvider {
     }
 
     private static RemoteViews build(Context c, int widgetId) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.deck_widget);
+        RemoteViews v = texts(c, new RemoteViews(c.getPackageName(), R.layout.deck_widget));
+        boolean stale = DeckWidgetStore.isStale(DeckWidgetStore.snapshot(c));
+
+        Intent open = new Intent(c, MainActivity.class);
+        open.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent openPi = PendingIntent.getActivity(c, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        v.setOnClickPendingIntent(R.id.widget_header, openPi);
+        v.setOnClickPendingIntent(R.id.widget_empty, openPi);
+
+        Intent svc = new Intent(c, DeckWidgetService.class);
+        svc.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
+        svc.setData(Uri.parse(svc.toUri(Intent.URI_INTENT_SCHEME)));
+        v.setRemoteAdapter(R.id.widget_list, svc);
+        v.setEmptyView(R.id.widget_list, R.id.widget_empty);
+
+        Intent tick = new Intent(c, DeckWidgetProvider.class);
+        tick.setAction(ACTION_TOGGLE);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags |= PendingIntent.FLAG_MUTABLE;
+        PendingIntent tickPi = PendingIntent.getBroadcast(c, 1, tick, flags);
+        v.setPendingIntentTemplate(R.id.widget_list, tickPi);
+        v.setViewVisibility(R.id.widget_list, View.VISIBLE);
+        return v;
+    }
+
+    /** Header and empty-state texts only. */
+    private static RemoteViews texts(Context c, RemoteViews v) {
         JSONObject snap = DeckWidgetStore.snapshot(c);
         boolean stale = DeckWidgetStore.isStale(snap);
 
@@ -75,27 +103,7 @@ public class DeckWidgetProvider extends AppWidgetProvider {
             sub = total == 0 ? "Nothing on your hand" : done >= total ? "All played. Nice." : done + " of " + total + " played";
         }
         v.setTextViewText(R.id.widget_sub, sub);
-
-        Intent open = new Intent(c, MainActivity.class);
-        open.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent openPi = PendingIntent.getActivity(c, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        v.setOnClickPendingIntent(R.id.widget_header, openPi);
-        v.setOnClickPendingIntent(R.id.widget_empty, openPi);
-
-        Intent svc = new Intent(c, DeckWidgetService.class);
-        svc.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
-        svc.setData(Uri.parse(svc.toUri(Intent.URI_INTENT_SCHEME)));
-        v.setRemoteAdapter(R.id.widget_list, svc);
-        v.setEmptyView(R.id.widget_list, R.id.widget_empty);
         v.setTextViewText(R.id.widget_empty, stale ? "Tap to open Deck" : "Nothing left on today's hand");
-
-        Intent tick = new Intent(c, DeckWidgetProvider.class);
-        tick.setAction(ACTION_TOGGLE);
-        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags |= PendingIntent.FLAG_MUTABLE;
-        PendingIntent tickPi = PendingIntent.getBroadcast(c, 1, tick, flags);
-        v.setPendingIntentTemplate(R.id.widget_list, tickPi);
-        v.setViewVisibility(R.id.widget_list, View.VISIBLE);
         return v;
     }
 }
